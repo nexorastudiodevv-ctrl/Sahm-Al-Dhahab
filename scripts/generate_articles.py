@@ -370,7 +370,7 @@ def fetch_articles(database_url: str) -> object:
     endpoint = database_url.rstrip("/") + "/articles.json"
     request = urllib.request.Request(
         endpoint,
-        headers={"Accept": "application/json", "User-Agent": "GoldHub-SEO-Publisher/1.0"},
+        headers={"Accept": "application/json", "User-Agent": "Sahm-Al-Dhahab-SEO-Publisher/1.0"},
     )
     try:
         with urllib.request.urlopen(request, timeout=30) as response:

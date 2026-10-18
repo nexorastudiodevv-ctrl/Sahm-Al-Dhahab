@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Hourly price updater for GoldHub -> Firebase Realtime Database
+ * Hourly price updater for سهم الذهب -> Firebase Realtime Database
  * - fetch gold price (USD per ounce) from GoldAPI
  * - fetch FX rates from open.er-api.com
  * - compute carats from gold oz price
@@ -87,7 +87,7 @@ async function fetchRatesUsdBase() {
   const data = await r.json();
   if (!data?.rates) throw new Error('FX response missing rates');
 
-  // GoldHub UI expects exchangeRates keys like EGP, SAR, EUR ... and also USD=1.
+  // سهم الذهب UI expects exchangeRates keys like EGP, SAR, EUR ... and also USD=1.
   // Also it uses XAU/XAG/XPT as reciprocals (computed in UI), but rules only validate rates is numeric.
   const rates = { ...data.rates };
   rates.USD = 1;
@@ -158,7 +158,7 @@ async function main() {
   // If not available, fallback to a small safe number (still > 0 to satisfy validation).
   const silverOzUsd = asNumber(fxRates?.XAG) || 0; // might not exist
 
-  // GoldHub UI needs silver in USD? In updateUI it treats silverPrice as USD.
+  // سهم الذهب UI needs silver in USD? In updateUI it treats silverPrice as USD.
   // We'll try to use an external silver via GoldAPI as a fallback if needed.
   // However we only configured gold fetch above.
 
@@ -215,4 +215,3 @@ main().catch((err) => {
   console.error('[fatal]', err);
   process.exit(1);
 });
-

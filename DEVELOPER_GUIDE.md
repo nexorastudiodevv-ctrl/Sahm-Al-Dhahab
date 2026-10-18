@@ -1,4 +1,4 @@
-# 🛠️ Gold & Currency Hub - دليل المطور
+# 🛠️ سهم الذهب - دليل المطور
 
 ## 📁 هيكل المشروع
 
@@ -188,8 +188,8 @@ function updateChart(newPrice) {
 ### manifest.json
 ```json
 {
-    "name": "Gold & Currency Hub",
-    "short_name": "GoldHub",
+    "name": "سهم الذهب",
+    "short_name": "سهم الذهب",
     "display": "standalone",
     "theme_color": "#090f1c"
 }

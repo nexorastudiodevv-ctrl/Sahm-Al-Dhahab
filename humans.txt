@@ -1,11 +1,11 @@
 /* ***SITE INFORMATION*** */
-Site Name: GoldHub
+Site Name: سهم الذهب
 Site Description: منصة متخصصة لمتابعة أسعار الذهب والفضة والعملات لحظة بلحظة
 Site Language: ar-EG, en
 URL: https://nexorastudio-eg.com/
 
 /* ***TEAM INFORMATION*** */
-Developer: GoldHub Development Team
+Developer: فريق سهم الذهب
 Frontend Technology: Vanilla JavaScript, Tailwind CSS v4.3.0
 Backend Service: Firebase (Authentication, Database, Analytics)
 Design: Responsive Web Design (RWD)
