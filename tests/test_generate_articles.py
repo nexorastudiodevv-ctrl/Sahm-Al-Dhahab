@@ -9,6 +9,7 @@ from scripts.generate_articles import (
     SITEMAP_NS,
     SafeArticleHTML,
     generate_site,
+    render_article_page,
     slug_for,
 )
 
@@ -59,6 +60,15 @@ class GenerateArticlesTests(unittest.TestCase):
                     "content": "<h2>التفاصيل</h2><p>محتوى مفيد.</p>",
                     "summary": "ملخص المقال.",
                     "image": "https://example.com/gold.jpg",
+                    "promotion": {
+                        "businessType": "shop",
+                        "business": 'متجر "الذهب" <المميز>',
+                        "description": "عرض خاص & تخفيضات",
+                        "image": "https://example.com/store.jpg",
+                        "url": "https://example.com/shop?ref=gold&offer=1",
+                        "buttonText": "تسوق الآن",
+                        "disclosure": False,
+                    },
                     "timestamp": 1792340000000,
                 }
             }
@@ -75,6 +85,18 @@ class GenerateArticlesTests(unittest.TestCase):
             self.assertIn('"name":"سهم الذهب"', page)
             self.assertIn("&lt;اختبار&gt;", page)
             self.assertIn("<h2>التفاصيل</h2>", page)
+            self.assertIn("متجر &quot;الذهب&quot; &lt;المميز&gt;", page)
+            self.assertIn("عرض خاص &amp; تخفيضات", page)
+            self.assertIn("https://example.com/shop?ref=gold&amp;offer=1", page)
+            self.assertIn('rel="sponsored nofollow noopener noreferrer"', page)
+            self.assertNotIn("إعلان / رابط تسويق بالعمولة", page)
+            disclosed_article = dict(entries["firebase-id-123"])
+            disclosed_article["promotion"] = {
+                **disclosed_article["promotion"],
+                "disclosure": True,
+            }
+            _, _, disclosed_page, _ = render_article_page("disclosed-id", disclosed_article)
+            self.assertIn("إعلان / رابط تسويق بالعمولة", disclosed_page)
 
             index = (article_dir / "index.html").read_text(encoding="utf-8")
             self.assertIn(f'href="posts/{slug}/"', index)
@@ -85,6 +107,18 @@ class GenerateArticlesTests(unittest.TestCase):
             ]
             self.assertIn(f"https://nexorastudio-eg.com/articles/posts/{slug}/", locations)
             self.assertIn("https://nexorastudio-eg.com/", locations)
+
+    def test_rejects_unsafe_affiliate_urls(self):
+        article = {
+            "title": "مقال",
+            "content": "<p>محتوى مفيد.</p>",
+            "promotion": {
+                "business": "متجر",
+                "url": "javascript:alert(1)",
+            },
+        }
+        with self.assertRaisesRegex(ValueError, "absolute HTTP"):
+            render_article_page("unsafe-promotion", article)
 
     def test_generated_sitemap_replaces_stale_generated_urls(self):
         with tempfile.TemporaryDirectory() as temporary:

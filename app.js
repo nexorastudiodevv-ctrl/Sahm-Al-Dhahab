@@ -129,6 +129,7 @@ const domElements = {
     articleModalImage: document.getElementById('articleModalImage'),
     articleModalDate: document.getElementById('articleModalDate'),
     articleModalContent: document.getElementById('articleModalContent'),
+    articleModalPromotion: document.getElementById('articleModalPromotion'),
     scrollToTopBottomBtn: document.getElementById('scrollToTopBottomBtn'),
     scrollIcon: document.getElementById('scrollIcon'),
     searchInput: document.getElementById('searchInput'),
@@ -1950,11 +1951,80 @@ function updateArticleSchema(article) {
 }
 
 // تصدير الدوال للنافذة لتعمل مع onclick
+function renderArticlePromotion(promotion) {
+    const container = domElements.articleModalPromotion;
+    container.replaceChildren();
+    container.classList.add('hidden');
+
+    if (!promotion || typeof promotion.business !== 'string' || !promotion.business.trim()) return;
+
+    let promotionUrl;
+    try {
+        promotionUrl = new URL(promotion.url);
+        if (!['https:', 'http:'].includes(promotionUrl.protocol)) return;
+    } catch {
+        return;
+    }
+
+    const card = document.createElement('section');
+    card.className = 'rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5 space-y-3';
+    card.setAttribute('aria-label', 'ترويج تجاري');
+
+    if (promotion.disclosure === true) {
+        const disclosure = document.createElement('p');
+        disclosure.className = 'text-xs font-bold text-amber-300';
+        disclosure.textContent = 'إعلان / رابط تسويق بالعمولة';
+        card.appendChild(disclosure);
+    }
+
+    const business = document.createElement('h3');
+    business.className = 'text-lg font-bold text-white';
+    business.textContent = promotion.business.trim();
+    card.appendChild(business);
+
+    if (typeof promotion.description === 'string' && promotion.description.trim()) {
+        const description = document.createElement('p');
+        description.className = 'text-sm text-slate-300';
+        description.textContent = promotion.description.trim();
+        card.appendChild(description);
+    }
+
+    if (typeof promotion.image === 'string' && promotion.image.trim()) {
+        try {
+            const imageUrl = new URL(promotion.image);
+            if (['https:', 'http:'].includes(imageUrl.protocol)) {
+                const image = document.createElement('img');
+                image.src = imageUrl.href;
+                image.alt = promotion.business.trim();
+                image.loading = 'lazy';
+                image.className = 'max-h-64 w-full rounded-xl object-cover';
+                card.appendChild(image);
+            }
+        } catch {
+            // Invalid optional image URLs are omitted; the promotion link remains usable.
+        }
+    }
+
+    const link = document.createElement('a');
+    link.href = promotionUrl.href;
+    link.target = '_blank';
+    link.rel = 'sponsored nofollow noopener noreferrer';
+    link.className = 'inline-flex rounded-xl bg-amber-500 px-5 py-3 font-bold text-slate-950 hover:bg-amber-400';
+    link.textContent = typeof promotion.buttonText === 'string' && promotion.buttonText.trim()
+        ? promotion.buttonText.trim()
+        : 'زيارة المتجر';
+    card.appendChild(link);
+
+    container.appendChild(card);
+    container.classList.remove('hidden');
+}
+
 window.openArticleModal = (id) => {
     const art = allArticlesData[id];
     if (art) {
         domElements.articleModalTitle.textContent = art.title;
         domElements.articleModalContent.innerHTML = art.content;
+        renderArticlePromotion(art.promotion);
         domElements.articleModal.classList.remove('hidden');
 
         // تحديث البيانات المهيكلة (JSON-LD) فور فتح المقال
