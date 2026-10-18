@@ -1,0 +1,49 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: ["main"] # تأكد أن هذا هو اسم الفرع الرئيسي لديك (main أو master)
+  schedule:
+    - cron: "17 * * * *" # تحديث صفحات المقالات المنشورة من Firebase كل ساعة
+  workflow_dispatch: # للسماح بتشغيل التحديث يدوياً إذا أردت
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Generate SEO pages from published Firebase articles
+        run: python scripts/generate_articles.py
+        env:
+          FIREBASE_DATABASE_URL: https://goldhub-1fdb1-default-rtdb.firebaseio.com
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
