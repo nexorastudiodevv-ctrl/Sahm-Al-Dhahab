@@ -67,6 +67,8 @@ class GenerateArticlesTests(unittest.TestCase):
                         "image": "https://example.com/store.jpg",
                         "url": "https://example.com/shop?ref=gold&offer=1",
                         "buttonText": "تسوق الآن",
+                        "startDate": "2026-10-18",
+                        "endDate": "2026-10-31",
                         "disclosure": False,
                     },
                     "timestamp": 1792340000000,
@@ -89,6 +91,10 @@ class GenerateArticlesTests(unittest.TestCase):
             self.assertIn("عرض خاص &amp; تخفيضات", page)
             self.assertIn("https://example.com/shop?ref=gold&amp;offer=1", page)
             self.assertIn('rel="sponsored nofollow noopener noreferrer"', page)
+            self.assertIn('data-start-date="2026-10-18"', page)
+            self.assertIn('data-end-date="2026-10-31"', page)
+            self.assertIn("card.hidden = Boolean(", page)
+            self.assertIn("setTimeout(update, nextMidnight.getTime() - now.getTime())", page)
             self.assertNotIn("إعلان / رابط تسويق بالعمولة", page)
             disclosed_article = dict(entries["firebase-id-123"])
             disclosed_article["promotion"] = {
@@ -119,6 +125,20 @@ class GenerateArticlesTests(unittest.TestCase):
         }
         with self.assertRaisesRegex(ValueError, "absolute HTTP"):
             render_article_page("unsafe-promotion", article)
+
+    def test_rejects_invalid_promotion_date_range(self):
+        article = {
+            "title": "مقال",
+            "content": "<p>محتوى مفيد.</p>",
+            "promotion": {
+                "business": "متجر",
+                "url": "https://example.com",
+                "startDate": "2026-11-02",
+                "endDate": "2026-11-01",
+            },
+        }
+        with self.assertRaisesRegex(ValueError, "on or after"):
+            render_article_page("invalid-dates", article)
 
     def test_generated_sitemap_replaces_stale_generated_urls(self):
         with tempfile.TemporaryDirectory() as temporary:

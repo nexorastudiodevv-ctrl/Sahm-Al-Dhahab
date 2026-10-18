@@ -1951,12 +1951,40 @@ function updateArticleSchema(article) {
 }
 
 // تصدير الدوال للنافذة لتعمل مع onclick
+let articlePromotionTimer;
+
+function promotionIsActive(promotion) {
+    const now = new Date();
+    const today = promotionDateString(now);
+    return (!promotion.startDate || today >= promotion.startDate)
+        && (!promotion.endDate || today <= promotion.endDate);
+}
+
+function promotionDateString(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function schedulePromotionUpdate(promotion, now = new Date()) {
+    const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    articlePromotionTimer = setTimeout(
+        () => renderArticlePromotion(promotion),
+        nextMidnight.getTime() - now.getTime()
+    );
+}
+
 function renderArticlePromotion(promotion) {
+    clearTimeout(articlePromotionTimer);
     const container = domElements.articleModalPromotion;
     container.replaceChildren();
     container.classList.add('hidden');
 
     if (!promotion || typeof promotion.business !== 'string' || !promotion.business.trim()) return;
+    if (!promotionIsActive(promotion)) {
+        if (promotion.startDate && promotionDateString(new Date()) < promotion.startDate) {
+            schedulePromotionUpdate(promotion);
+        }
+        return;
+    }
 
     let promotionUrl;
     try {
@@ -2017,6 +2045,7 @@ function renderArticlePromotion(promotion) {
 
     container.appendChild(card);
     container.classList.remove('hidden');
+    schedulePromotionUpdate(promotion);
 }
 
 window.openArticleModal = (id) => {

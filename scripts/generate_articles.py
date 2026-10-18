@@ -15,7 +15,7 @@ import unicodedata
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urljoin, urlsplit
@@ -181,6 +181,23 @@ def render_promotion(promotion: object) -> str:
 
     description = str(promotion.get("description") or "").strip()
     button_text = str(promotion.get("buttonText") or "زيارة المتجر").strip() or "زيارة المتجر"
+    date_values: dict[str, str] = {}
+    for field in ("startDate", "endDate"):
+        value = promotion.get(field)
+        if value:
+            try:
+                date_values[field] = date.fromisoformat(str(value)).isoformat()
+            except ValueError as error:
+                raise ValueError(f"promotion {field} must be an ISO date (YYYY-MM-DD)") from error
+            if date_values[field] != value:
+                raise ValueError(f"promotion {field} must be an ISO date (YYYY-MM-DD)")
+    if (
+        date_values.get("startDate")
+        and date_values.get("endDate")
+        and date_values["startDate"] > date_values["endDate"]
+    ):
+        raise ValueError("promotion endDate must be on or after startDate")
+
     image = safe_url(str(promotion.get("image") or "").strip(), image=True)
     if promotion.get("image") and not image:
         raise ValueError("promotion image URL is invalid")
@@ -200,14 +217,34 @@ def render_promotion(promotion: object) -> str:
         '<p class="promotion-disclosure">إعلان / رابط تسويق بالعمولة</p>'
         if promotion.get("disclosure") is True else ""
     )
-    return f"""<aside class="promotion" aria-label="ترويج تجاري">
+    date_attributes = "".join(
+        f' data-{field.replace("Date", "-date")}="{html.escape(value, quote=True)}"'
+        for field, value in date_values.items()
+    )
+    date_script = """<script>
+(() => {
+  const card = document.currentScript.previousElementSibling;
+  const update = () => {
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    card.hidden = Boolean(
+      (card.dataset.startDate && today < card.dataset.startDate)
+      || (card.dataset.endDate && today > card.dataset.endDate)
+    );
+    const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    setTimeout(update, nextMidnight.getTime() - now.getTime());
+  };
+  update();
+})();
+</script>""" if date_values else ""
+    return f"""<aside class="promotion" aria-label="ترويج تجاري"{date_attributes}>
   {disclosure_markup}
   <p class="promotion-type">{business_type_labels[business_type]}</p>
   <h2>{html.escape(business)}</h2>
   {description_markup}
   {image_markup}
   <a class="promotion-button" href="{html.escape(url, quote=True)}" target="_blank" rel="sponsored nofollow noopener noreferrer">{html.escape(button_text)}</a>
-</aside>"""
+</aside>{date_script}"""
 
 
 def json_for_html(value: dict) -> str:
@@ -293,7 +330,7 @@ def render_article_page(article_id: str, article: dict) -> tuple[str, str, str, 
     {'    '.join(metadata)}
     <style>
       :root{{color-scheme:dark;--bg:#090f1c;--panel:#0f172a;--text:#f8fafc;--muted:#94a3b8;--accent:#06b6d4;--border:rgba(148,163,184,.2)}}
-      *{{box-sizing:border-box}}body{{margin:0;font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#090f1c,#05070c);color:var(--text);line-height:1.9}}a{{color:var(--accent)}}.container{{max-width:900px;margin:0 auto;padding:40px 20px 80px}}.article{{background:rgba(15,23,42,.92);border:1px solid var(--border);border-radius:24px;padding:24px 24px 32px;box-shadow:0 12px 40px rgba(0,0,0,.2)}}.cover{{width:100%;height:auto;border-radius:18px;display:block;margin:18px 0}}.meta{{color:var(--muted);font-size:14px}}h1{{font-size:clamp(2rem,4vw,2.6rem);line-height:1.5}}h2{{font-size:1.4rem;margin-top:1.6em}}.content img{{max-width:100%;height:auto}}.content a{{overflow-wrap:anywhere}}.promotion{{margin-top:32px;padding:24px;border:1px solid rgba(245,158,11,.35);border-radius:20px;background:rgba(245,158,11,.06)}}.promotion h2{{margin:.25em 0}}.promotion-type,.promotion-disclosure{{color:#fbbf24;font-size:.85rem;font-weight:700}}.promotion p{{color:var(--muted)}}.promotion-image{{display:block;max-width:100%;max-height:320px;border-radius:14px;object-fit:cover;margin:16px 0}}.promotion-button{{display:inline-block;margin-top:12px;padding:10px 18px;border-radius:12px;background:#f59e0b;color:#090f1c;font-weight:700;text-decoration:none}}
+      *{{box-sizing:border-box}}body{{margin:0;font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#090f1c,#05070c);color:var(--text);line-height:1.9}}a{{color:var(--accent)}}.container{{max-width:900px;margin:0 auto;padding:40px 20px 80px}}.article{{background:rgba(15,23,42,.92);border:1px solid var(--border);border-radius:24px;padding:24px 24px 32px;box-shadow:0 12px 40px rgba(0,0,0,.2)}}.cover{{width:100%;height:auto;border-radius:18px;display:block;margin:18px 0}}.meta{{color:var(--muted);font-size:14px}}h1{{font-size:clamp(2rem,4vw,2.6rem);line-height:1.5}}h2{{font-size:1.4rem;margin-top:1.6em}}.content img{{max-width:100%;height:auto}}.content a{{overflow-wrap:anywhere}}.promotion{{margin-top:32px;padding:24px;border:1px solid rgba(245,158,11,.35);border-radius:20px;background:rgba(245,158,11,.06)}}.promotion[hidden]{{display:none}}.promotion h2{{margin:.25em 0}}.promotion-type,.promotion-disclosure{{color:#fbbf24;font-size:.85rem;font-weight:700}}.promotion p{{color:var(--muted)}}.promotion-image{{display:block;max-width:100%;max-height:320px;border-radius:14px;object-fit:cover;margin:16px 0}}.promotion-button{{display:inline-block;margin-top:12px;padding:10px 18px;border-radius:12px;background:#f59e0b;color:#090f1c;font-weight:700;text-decoration:none}}
     </style>
   </head>
   <body>
