@@ -70,6 +70,9 @@ class GenerateArticlesTests(unittest.TestCase):
             self.assertIn("<meta name=\"robots\" content=\"index, follow", page)
             self.assertIn('rel="canonical" href="https://nexorastudio-eg.com/articles/posts/', page)
             self.assertIn('"@type":"Article"', page)
+            self.assertIn('content="سهم الذهب"', page)
+            self.assertIn("| سهم الذهب</title>", page)
+            self.assertIn('"name":"سهم الذهب"', page)
             self.assertIn("&lt;اختبار&gt;", page)
             self.assertIn("<h2>التفاصيل</h2>", page)
 

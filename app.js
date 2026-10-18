@@ -285,7 +285,7 @@ function debounce(func, timeout = 300) {
     };
 }
 
-// دالة لإظهار إشعار حقيقي في المتصفح باستخدام شعار GoldHub
+// دالة لإظهار إشعار حقيقي في المتصفح باستخدام شعار سهم الذهب
 function triggerBrandNotification(title, body, type = 'article') {
     const iconPath = './icon.webp';
     if ('Notification' in window && Notification.permission === 'granted') {
@@ -336,7 +336,7 @@ window.addInternalNotification = (title, id, type = 'article', body = '') => {
     `;
     list.prepend(entry);
 
-    triggerBrandNotification(type === 'article' ? 'إعلان GoldHub' : 'تحديث سعر GoldHub', title, type);
+    triggerBrandNotification(type === 'article' ? 'سهم الذهب | مقال جديد' : 'سهم الذهب | تحديث الأسعار', title, type);
 };
 
 // دالة مساعدة للحصول على رابط العلم بشكل آمن لتجنب أخطاء 404
@@ -1084,7 +1084,7 @@ function updateUI() {
         const trendText = goldPrice > previousGoldSnapshot ? 'ارتفع' : 'انخفض';
         const headline = `سعر الذهب ${trendText} إلى ${formatters.usd.format(goldPrice)}`;
         addInternalNotification(headline, `price-${Date.now()}`, 'price', `${trendText} السعر خلال آخر تحديث`);
-        triggerBrandNotification('GoldHub | تحديث السعر', headline, 'price');
+        triggerBrandNotification('سهم الذهب | تحديث السعر', headline, 'price');
         localStorage.setItem('goldhub_last_price_notification', Date.now().toString());
     }
 
@@ -1221,7 +1221,7 @@ function simulateMarket() {
 
         // 2. إرسال إشعار النظام
         if (Notification.permission === "granted") {
-            new Notification("تنبيه الذهب | GoldHub", {
+            new Notification("تنبيه الذهب | سهم الذهب", {
                 body: `وصل سعر الذهب الآن إلى $${goldPrice}`,
                 icon: './icon.webp',
                 badge: './icon.webp'
@@ -1634,11 +1634,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (prompt) prompt.classList.add('hidden');
 
         if (permission === 'granted') {
-            showToast('تم تفعيل إشعارات GoldHub بنجاح ✅');
+            showToast('تم تفعيل إشعارات سهم الذهب بنجاح ✅');
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('./sw.js').then(reg => initPushNotifications(reg)).catch(() => {});
             }
-            triggerBrandNotification('GoldHub', 'تم تفعيل إشعارات أسعار الذهب والمقالات بنجاح', 'article');
+            triggerBrandNotification('سهم الذهب', 'تم تفعيل إشعارات أسعار الذهب والمقالات بنجاح', 'article');
         } else {
             showToast('تم رفض الإشعارات، يمكنك تفعيلها لاحقاً من إعدادات المتصفح');
         }
@@ -1921,25 +1921,25 @@ function updateArticleSchema(article) {
         "image": {
             "@type": "ImageObject",
             "url": article.image || (window.location.origin + "/icon.png"),
-            "creditText": "Gold & Currency Hub",
+            "creditText": "سهم الذهب",
             "license": "https://nexorastudio-eg.com/privacy",
-            "copyrightNotice": "© 2026 Gold & Currency Hub",
+            "copyrightNotice": "© 2026 سهم الذهب",
             "acquireLicensePage": "https://nexorastudio-eg.com/contact"
         },
         "datePublished": article.timestamp ? new Date(article.timestamp).toISOString() : new Date().toISOString(),
         "author": {
             "@type": "Organization",
-            "name": "GoldHub"
+            "name": "سهم الذهب"
         },
         "publisher": {
             "@type": "Organization",
-            "name": "GoldHub",
+            "name": "سهم الذهب",
             "logo": {
                 "@type": "ImageObject",
                 "url": window.location.origin + "/icon.png",
-                "creditText": "Gold & Currency Hub",
+                "creditText": "سهم الذهب",
                 "license": "https://nexorastudio-eg.com/privacy",
-                "copyrightNotice": "© 2026 Gold & Currency Hub",
+                "copyrightNotice": "© 2026 سهم الذهب",
                 "acquireLicensePage": "https://nexorastudio-eg.com/contact"
             }
         },

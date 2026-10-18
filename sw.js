@@ -134,7 +134,7 @@ self.addEventListener('fetch', (e) => {
 if (messaging) {
     messaging.onBackgroundMessage((payload) => {
         console.log('Received background message: ', payload);
-        const notificationTitle = payload?.notification?.title || "تحديث من GoldHub";
+        const notificationTitle = payload?.notification?.title || "تحديث من سهم الذهب";
         const notificationOptions = {
             body: payload?.notification?.body || "توجد تحديثات جديدة في أسعار السوق.",
             icon: payload?.notification?.icon || 'icon.png',

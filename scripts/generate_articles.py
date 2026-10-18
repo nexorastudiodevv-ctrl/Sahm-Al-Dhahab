@@ -189,12 +189,12 @@ def render_article_page(article_id: str, article: dict) -> tuple[str, str, str, 
         image = urljoin(f"{BASE_URL}/", image.lstrip("/"))
 
     metadata = [
-        f"<title>{html.escape(title)} | GoldHub</title>",
+        f"<title>{html.escape(title)} | سهم الذهب</title>",
         f'<meta name="description" content="{html.escape(summary, quote=True)}" />',
         '<meta name="robots" content="index, follow, max-image-preview:large" />',
         f'<link rel="canonical" href="{html.escape(canonical, quote=True)}" />',
         '<meta property="og:type" content="article" />',
-        '<meta property="og:site_name" content="GoldHub" />',
+        '<meta property="og:site_name" content="سهم الذهب" />',
         '<meta property="og:locale" content="ar_EG" />',
         f'<meta property="og:title" content="{html.escape(title, quote=True)}" />',
         f'<meta property="og:description" content="{html.escape(summary, quote=True)}" />',
@@ -208,7 +208,7 @@ def render_article_page(article_id: str, article: dict) -> tuple[str, str, str, 
         "@type": "Article",
         "headline": title,
         "description": summary,
-        "author": {"@type": "Organization", "name": "GoldHub"},
+        "author": {"@type": "Organization", "name": "سهم الذهب"},
         "publisher": {"@id": f"{BASE_URL}/#organization"},
         "mainEntityOfPage": canonical,
         "inLanguage": "ar",
@@ -247,7 +247,7 @@ def render_article_page(article_id: str, article: dict) -> tuple[str, str, str, 
   </head>
   <body>
     <main class="container">
-      <a href="/articles/">← العودة إلى المقالات</a>
+      <a href="/articles/">← العودة إلى مقالات سهم الذهب</a>
       <article class="article">
         {date_markup}
         <h1>{html.escape(title)}</h1>
