@@ -8,9 +8,9 @@ const firebaseConfig = {
     apiKey: "AIzaSyBLHuPTH3RhwDTdxTDcgFRYPfvXZM3gco8",
     authDomain: "goldhub-1fdb1.firebaseapp.com", // تم تحديث النطاق ليتطابق مع app.js
     projectId: "goldhub-1fdb1",
-    storageBucket: "goldhub-1fdb1.appspot.com",
+    storageBucket: "goldhub-1fdb1.firebasestorage.app",
     messagingSenderId: "646245822812",
-    appId: "1:646245822812:web:54a6380fa2eafec0391199",
+    appId: "1:646245822812:web:bc5baf69c7ffaa6c391199",
     databaseURL: "https://goldhub-1fdb1-default-rtdb.firebaseio.com/"
 };
 
@@ -25,7 +25,7 @@ try {
     console.error("⚠️ Failed to initialize Firebase Messaging in SW:", err);
 }
 
-const CACHE_NAME = 'gold-hub-v9';
+const CACHE_NAME = 'gold-hub-v10';
 const ASSETS = [
     'index.html',
     'manifest.json',
@@ -69,6 +69,8 @@ self.addEventListener('fetch', (e) => {
 
     // صفحات HTML يجب أن تصل من الشبكة أولاً كي يرى الزائر آخر تحديثات المحتوى والتواصل.
     const requestUrl = new URL(e.request.url);
+    if (requestUrl.pathname === '/admin' || requestUrl.pathname.startsWith('/admin/')) return;
+
     if (e.request.mode === 'navigate' || requestUrl.pathname.endsWith('.html')) {
         e.respondWith(
             fetch(e.request)

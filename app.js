@@ -1,6 +1,5 @@
 // استيراد مكتبات Firebase بشكل صحيح
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, setPersistence, browserSessionPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
@@ -20,27 +19,23 @@ window.addEventListener('unhandledrejection', (event) => {
 const firebaseConfig = {
     apiKey: "AIzaSyBLHuPTH3RhwDTdxTDcgFRYPfvXZM3gco8",
     authDomain: "goldhub-1fdb1.firebaseapp.com",
-    // ملاحظة: لا تكرر نفس المفتاح مرتين - احتفظ برابط Firebase الرسمي هنا
     projectId: "goldhub-1fdb1",
-    storageBucket: "goldhub-1fdb1.appspot.com",
+    storageBucket: "goldhub-1fdb1.firebasestorage.app",
     messagingSenderId: "646245822812",
-    appId: "1:646245822812:web:54a6380fa2eafec0391199",
-    measurementId: "G-SN6Q2JB1RB",
+    appId: "1:646245822812:web:bc5baf69c7ffaa6c391199",
+    measurementId: "G-SRGBQY4JM3",
     databaseURL: "https://goldhub-1fdb1-default-rtdb.firebaseio.com/"
 };
 
 // تهيئة Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getDatabase(app);
 const analytics = getAnalytics(app);
 const messaging = getMessaging(app);
 const pricesRef = ref(db, 'market_prices');
 const historyRef = ref(db, 'price_history');
 const articlesRef = ref(db, 'articles');
-let editArticleId = null;
 let allArticlesData = {};
-let quill;
 
 // إعدادات API Ninjas (أدخل مفتاحك هنا لاحقاً)
 const NINJA_API_KEY = 'inmE8YUxP8omD7Ln9aA4xv1JaL3EVB47MJ3yQKyi';
@@ -68,7 +63,7 @@ const translations = {
     ar: {
         gold_oz: "سعر أونصة الذهب بالدولار", gold_g: "سعر جرام الذهب بالدولار", silver_oz: "أوقية فضة", platinum_oz: "أوقية بلاتين", iron_ezz: "حديد عز (طن)", iron_egyptians: "حديد المصريين (طن)", iron_garhy: "حديد الجارحي (طن)",
         home: "الرئيسية", gold_markets: "أسواق الذهب", currency_markets: "أسعار العملات",
-admin_panel: "لوحة التحكم", about: "من نحن", contact: "اتصل بنا",
+about: "من نحن", contact: "اتصل بنا",
         privacy: "سياسة الخصوصية", live_market: "سوق المال المباشر", sub_heading: "تحديثات فورية لأسعار الذهب العالمية والمعادن",
         up: "صعود", down: "هبوط", stable: "ثابت", live_update: "تحديث مباشر", share: "مشاركة السعر",
         converter: "محول العملات السريع", result: "النتيجة التقريبية", search: "ابحث عن عملة أو عيار..."
@@ -76,7 +71,7 @@ admin_panel: "لوحة التحكم", about: "من نحن", contact: "اتصل �
     en: {
         gold_oz: "Gold Price per Ounce (USD)", gold_g: "Gold Price per Gram (USD)", silver_oz: "Silver Ounce", platinum_oz: "Platinum Ounce", iron_ezz: "Ezz Steel (Ton)", iron_egyptians: "Egyptian Steel (Ton)", iron_garhy: "El Garhy Steel (Ton)",
         home: "Home", gold_markets: "Gold Markets", currency_markets: "Currencies",
-        admin_panel: "Admin Panel", about: "About Us", contact: "Contact Us",
+        about: "About Us", contact: "Contact Us",
         privacy: "Privacy Policy", live_market: "Live Market Hub", sub_heading: "Real-time updates for global gold and metal prices",
         up: "Up", down: "Down", stable: "Stable", live_update: "Live Update", share: "Share Price",
         converter: "Currency Converter", result: "Approximate Result", search: "Search currency or carat..."
@@ -134,8 +129,6 @@ const domElements = {
     articleModalImage: document.getElementById('articleModalImage'),
     articleModalDate: document.getElementById('articleModalDate'),
     articleModalContent: document.getElementById('articleModalContent'),
-    adminPanel: document.getElementById('adminPanel'),
-    loginModal: document.getElementById('loginModal'),
     scrollToTopBottomBtn: document.getElementById('scrollToTopBottomBtn'),
     scrollIcon: document.getElementById('scrollIcon'),
     searchInput: document.getElementById('searchInput'),
@@ -150,14 +143,11 @@ const domElements = {
     setAlertBtn: document.getElementById('setAlertBtn'),
     soundSelect: document.getElementById('soundSelect'),
     alertDirection: document.getElementById('alertDirection'), // إضافة عنصر اتجاه التنبيه
-    editorContainer: document.getElementById('editor-container'),
-    articlePreviewContainer: document.getElementById('articlePreviewContainer'),
     mobileMoreBtn: document.getElementById('mobileMoreBtn'),
     mobileMoreModal: document.getElementById('mobileMoreModal'),
     closeMobileMoreModalBtn: document.getElementById('closeMobileMoreModalBtn'),
     mobileMoreNearbyLink: document.getElementById('mobileMoreNearbyLink'),
     mobileMoreArticlesLink: document.getElementById('mobileMoreArticlesLink'),
-mobileMoreAdminBtn: document.getElementById('mobileMoreAdminBtn'),
     mobileMoreFaqLink: document.getElementById('mobileMoreFaqLink'),
     mobileMoreAboutLink: document.getElementById('mobileMoreAboutLink'),
     mobileMoreContactLink: document.getElementById('mobileMoreContactLink')
@@ -432,53 +422,16 @@ function loadScriptOnce(id, src) {
     });
 }
 
-function loadStyleOnce(id, href) {
-    if (document.getElementById(id)) return Promise.resolve();
-    return new Promise((resolve, reject) => {
-        const link = document.createElement('link');
-        link.id = id;
-        link.rel = 'stylesheet';
-        link.href = href;
-        link.onload = resolve;
-        link.onerror = reject;
-        document.head.appendChild(link);
-    });
-}
-
 async function loadChart() {
     if (goldChart) return;
     await loadScriptOnce('chartjs-script', 'https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js');
     initChart();
 }
 
-async function initQuillEditor() {
-    if (quill || !document.getElementById('editor-container')) return;
-    await Promise.all([
-        loadStyleOnce('quill-style', 'https://cdn.jsdelivr.net/npm/quill@1.3.6/dist/quill.snow.css'),
-        loadScriptOnce('quill-script', 'https://cdn.jsdelivr.net/npm/quill@1.3.6/dist/quill.js')
-    ]);
-    quill = new Quill('#editor-container', {
-        theme: 'snow',
-        placeholder: 'اكتب محتوى المقال هنا...',
-        modules: {
-            toolbar: [
-                [{ 'header': [2, 3, false] }],
-                ['bold', 'italic', 'underline'],
-                ['link', 'image'],
-                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                [{ 'direction': 'rtl' }]
-            ]
-        }
-    });
-    quill.on('text-change', updateLivePreview);
-    updateLivePreview();
-}
 let previousGoldPrice = goldPrice;
 let previousCaratPrices = { k24: 0, k21: 0, k18: 0, k14: 0, k12: 0 };
 // وحدة العرض الافتراضية: 'oz' للأونصة أو 'g' للجرام
 let displayUnit = localStorage.getItem('displayUnit') || 'oz';
-const ADMIN_EMAIL = "alfaydahmd02@gmail.com";
-
 function addApiLog(msg) {
     const container = domElements.apiLogs;
     if (!container) return;
@@ -999,7 +952,6 @@ onValue(pricesRef, (snapshot) => {
     localStorage.setItem('last_rates', JSON.stringify(exchangeRates));
     renderConverterOptions();
     updateUI();
-    updateLivePreview();
 });
 
 // تشغيل الـ APIs فوراً لضمان عرض الأسعار بدون انتظار Firebase
@@ -1086,7 +1038,6 @@ onValue(articlesRef, (snapshot) => {
         latestList.innerHTML = articlesArray.slice(0, 3).map(([id, art]) => articleHTML(id, art)).join('');
     }
 
-    if (auth.currentUser?.email === ADMIN_EMAIL) renderAdminArticles();
 });
 
 function calculateConversion() {
@@ -1330,7 +1281,7 @@ window.showSection = (sectionName) => {
 
     // تحديث الحالة النشطة في أزرار التنقل للهواتف
     const primaryMobileSections = ['home', 'gold', 'currency', 'about', 'contact'];
-const moreModalSections = ['nearby', 'articles', 'faq', 'admin']; // 'admin' is special, handled by handleOpenAdmin
+const moreModalSections = ['nearby', 'articles', 'faq'];
 
     // Reset all mobile nav links (primary and More button)
     document.querySelectorAll('#mobileBottomNav a, #mobileBottomNav button').forEach(link => {
@@ -1346,7 +1297,7 @@ const moreModalSections = ['nearby', 'articles', 'faq', 'admin']; // 'admin' is 
             activeLink.classList.add('text-cyan-400');
         }
     } else if (moreModalSections.includes(sectionName)) {
-        // If a section from the "More" modal (or admin panel) is active, make the "More" button active
+        // Highlight the More button while one of its sections is active.
         const mobileMoreBtn = document.getElementById('mobileMoreBtn');
         if (mobileMoreBtn) {
             mobileMoreBtn.classList.remove('text-slate-500');
@@ -1365,12 +1316,6 @@ const moreModalSections = ['nearby', 'articles', 'faq', 'admin']; // 'admin' is 
     if (activeMoreLink) {
         activeMoreLink.classList.remove('text-slate-400', 'border-slate-800');
         activeMoreLink.classList.add('text-cyan-400', 'border-cyan-500/30');
-    } else if (sectionName === 'admin') { // Special handling for admin button in modal
-        const adminMoreBtn = document.getElementById('mobileMoreAdminBtn');
-        if (adminMoreBtn) {
-            adminMoreBtn.classList.remove('text-amber-400', 'border-slate-800');
-            adminMoreBtn.classList.add('text-amber-300', 'border-amber-500/30');
-        }
     }
 };
 
@@ -1717,8 +1662,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.market-tab-btn').forEach(btn => {
         btn.addEventListener('click', () => switchMarketTab(btn.dataset.marketTab));
     });
-    document.getElementById('articleTitle')?.addEventListener('input', updateLivePreview);
-    document.getElementById('articleImage')?.addEventListener('input', updateLivePreview);
 
     // تسجيل الـ Service Worker وطلب إذن الإشعارات
     if ('serviceWorker' in navigator) {
@@ -1746,7 +1689,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // تحديث كل 5 دقائق (300,000ms) بدلاً من دقيقة واحدة لتوفير استهلاك الـ API
     setInterval(() => { if (!isManualMode) fetchApiPrices(); }, 300000);
 
-    // --- أحداث لوحة التحكم ---
+    // أحداث إضافية للواجهة
     // استخدام Debounce للبحث لتقليل العمليات الحسابية المتكررة أثناء الكتابة السريعة
     const debouncedRenderCurrencies = debounce(() => renderCurrencies());
     document.getElementById('searchInput')?.addEventListener('input', debouncedRenderCurrencies);
@@ -1798,37 +1741,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // إغلاق مودال المقال
     document.getElementById('closeArticleModalBtn')?.addEventListener('click', () => domElements.articleModal.classList.add('hidden'));
 
-    // وظيفة فتح لوحة التحكم المشتركة
-    const handleOpenAdmin = () => {
-        if (auth.currentUser?.email === ADMIN_EMAIL) {
-            domElements.adminPanel.classList.remove('hidden');
-            initQuillEditor().catch(() => showToast('تعذر تحميل محرر المقالات.'));
-            if (!domElements.loginModal.classList.contains('hidden')) {
-                domElements.loginModal.classList.add('hidden');
-            }
-            // تعبئة القيم الحالية في المدخلات اليدوية عند الفتح
-            document.getElementById('manualGoldPrice').value = goldPrice;
-            document.getElementById('manualSilverPrice').value = silverPrice;
-            document.getElementById('manualCopperPrice').value = copperPrice;
-            document.getElementById('manualPlatinumPrice').value = platinumPrice;
-            document.getElementById('manualIronEzzPrice').value = ironEzzPrice;
-            document.getElementById('manualIronEgyptiansPrice').value = ironEgyptiansPrice;
-            document.getElementById('manualIronGarhyPrice').value = ironGarhyPrice;
-            document.getElementById('manualEGP').value = exchangeRates.EGP;
-            document.getElementById('manualSAR').value = exchangeRates.SAR;
-            document.getElementById('manualEUR').value = exchangeRates.EUR;
-        } else {
-            domElements.loginModal.classList.remove('hidden');
-        }
-    };
-
-    // ربط الحدث بزر الكمبيوتر وزر الهاتف
-    document.getElementById('openAdminBtn')?.addEventListener('click', handleOpenAdmin);
-    document.getElementById('mobileAdminBtn')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        handleOpenAdmin();
-    });
-
     // ربط أزرار نافذة "المزيد" بالأقسام المناسبة
     const moreLinks = [
         { id: 'mobileMoreNearbyLink', section: 'nearby' },
@@ -1843,109 +1755,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showSection(item.section);
             domElements.mobileMoreModal?.classList.add('hidden');
         });
-    });
-
-    domElements.mobileMoreAdminBtn?.addEventListener('click', () => {
-        handleOpenAdmin();
-        domElements.mobileMoreModal?.classList.add('hidden');
-    });
-
-    // إغلاق لوحة التحكم
-    document.getElementById('closeAdminBtn')?.addEventListener('click', () => domElements.adminPanel.classList.add('hidden'));
-    document.getElementById('closeLoginBtn')?.addEventListener('click', () => domElements.loginModal.classList.add('hidden'));
-
-    // برمجة الربط التلقائي بين سعر الأونصة والعيارات في لوحة التحكم
-    const manualGoldInput = document.getElementById('manualGoldPrice');
-    const manual24kInput = document.getElementById('manual24k');
-    const manual21kInput = document.getElementById('manual21k');
-    const manual18kInput = document.getElementById('manual18k');
-    const manual14kInput = document.getElementById('manual14k');
-    const manual12kInput = document.getElementById('manual12k');
-
-    manualGoldInput?.addEventListener('input', (e) => {
-        const ozPrice = parseFloat(e.target.value);
-        if (ozPrice > 0) {
-            const g24 = ozPrice / OUNCE_TO_GRAM;
-            if (manual24kInput) manual24kInput.value = g24.toFixed(2);
-            if (manual21kInput) manual21kInput.value = (g24 * 0.875).toFixed(2);
-            if (manual18kInput) manual18kInput.value = (g24 * 0.75).toFixed(2);
-            if (manual14kInput) manual14kInput.value = (g24 * (14 / 24)).toFixed(2);
-            if (manual12kInput) manual12kInput.value = (g24 * 0.5).toFixed(2);
-        }
-    });
-
-    // معالجة تسجيل الدخول للمدير
-    document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value.trim();
-        const password = document.getElementById('loginPassword').value;
-
-        // التحقق الأولي من البريد الإلكتروني قبل محاولة تسجيل الدخول
-        if (email !== ADMIN_EMAIL) {
-            showToast("عذراً، هذا البريد لا يملك صلاحيات وصول إدارية");
-            return;
-        }
-
-        const spinner = document.getElementById('loginSpinner');
-        spinner.classList.remove('hidden');
-        try {
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            if (userCredential.user.email === ADMIN_EMAIL) {
-                handleOpenAdmin(); // فتح اللوحة بعد التحقق
-                showToast("تم تسجيل الدخول بنجاح ✅");
-            }
-        } catch (err) {
-            alert("فشل الدخول: تأكد من كلمة المرور والبريد");
-        } finally {
-            spinner.classList.add('hidden');
-        }
-    });
-
-    // تسجيل الخروج
-    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-        await signOut(auth);
-        domElements.adminPanel.classList.add('hidden');
-        showToast("تم تسجيل الخروج");
-    });
-
-    // إضافة/تعديل مقال
-    document.getElementById('addArticleBtn')?.addEventListener('click', async () => {
-        const title = document.getElementById('articleTitle').value;
-        const image = document.getElementById('articleImage').value;
-        const content = quill.root.innerHTML;
-        const summary = quill.getText(0, 150).trim() + "...";
-
-        if (!title || !content) return alert("يرجى إكمال الحقول الأساسية");
-
-        const id = editArticleId || Date.now().toString();
-        await set(ref(db, `articles/${id}`), {
-            title, image, content, summary,
-            date: new Date().toLocaleDateString('ar-EG'),
-            timestamp: Date.now()
-        });
-
-        if (!editArticleId) {
-            window.addInternalNotification(title, id, 'article', summary || 'تم نشر مقال جديد على GoldHub');
-            triggerBrandNotification('GoldHub | مقال جديد', title, 'article');
-        }
-
-        showToast(editArticleId ? "تم تعديل المقال" : "تم نشر المقال");
-        resetArticleForm();
-    });
-
-    document.getElementById('cancelEditBtn')?.addEventListener('click', resetArticleForm);
-
-    // حذف البيانات والعودة للوضع التلقائي
-    document.getElementById('resetToAutoBtn')?.addEventListener('click', async () => {
-        if (confirm("هل أنت متأكد من حذف البيانات السحابية والعودة للوضع التلقائي؟")) {
-            await remove(pricesRef);
-            location.reload();
-        }
-    });
-
-    // البحث في مقالات لوحة التحكم
-    document.getElementById('adminArticleSearch')?.addEventListener('input', (e) => {
-        renderAdminArticles(e.target.value.toLowerCase());
     });
 
     // أحداث التنقل (Desktop & Mobile)
@@ -2031,53 +1840,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (domElements.nearbyExchangesList) domElements.nearbyExchangesList.innerHTML = '<p class="text-xs text-slate-500 italic text-center py-10">جاري البحث عن مكاتب قريبة...</p>';
         // إعادة تهيئة الخريطة والبحث عن المكاتب في الموقع الأولي
         initMap();
-    });
-
-    // حفظ الأسعار يدوياً إلى Firebase
-    document.getElementById('saveManualPrices')?.addEventListener('click', async () => {
-        const manualEgpRate = parseFloat(document.getElementById('manualEGP').value) || exchangeRates.EGP;
-        const currentManualGoldPrice = parseFloat(document.getElementById('manualGoldPrice').value) || goldPrice;
-
-        // حساب أسعار العيارات يدوياً أو من المدخلات
-        const manualCarats = {
-            k24: parseFloat(document.getElementById('manual24k').value) || (parseFloat(document.getElementById('manual24kEGP').value) / manualEgpRate) || (currentManualGoldPrice / OUNCE_TO_GRAM),
-            k21: parseFloat(document.getElementById('manual21k').value) || (parseFloat(document.getElementById('manual21kEGP').value) / manualEgpRate) || ((currentManualGoldPrice / OUNCE_TO_GRAM) * 0.875),
-            k18: parseFloat(document.getElementById('manual18k').value) || (parseFloat(document.getElementById('manual18kEGP').value) / manualEgpRate) || ((currentManualGoldPrice / OUNCE_TO_GRAM) * 0.75),
-            k14: parseFloat(document.getElementById('manual14k').value) || (parseFloat(document.getElementById('manual14kEGP').value) / manualEgpRate) || ((currentManualGoldPrice / OUNCE_TO_GRAM) * (14 / 24)),
-            k12: parseFloat(document.getElementById('manual12k').value) || (parseFloat(document.getElementById('manual12kEGP').value) / manualEgpRate) || ((currentManualGoldPrice / OUNCE_TO_GRAM) * 0.5)
-        };
-
-        const newPrices = {
-            gold: parseFloat(document.getElementById('manualGoldPrice').value) || goldPrice,
-            silver: parseFloat(document.getElementById('manualSilverPrice').value) || silverPrice,
-            copper: parseFloat(document.getElementById('manualCopperPrice').value) || copperPrice,
-            platinum: parseFloat(document.getElementById('manualPlatinumPrice').value) || platinumPrice,
-            ironEzz: parseFloat(document.getElementById('manualIronEzzPrice').value) || ironEzzPrice,
-            ironEgyptians: parseFloat(document.getElementById('manualIronEgyptiansPrice').value) || ironEgyptiansPrice,
-            ironGarhy: parseFloat(document.getElementById('manualIronGarhyPrice').value) || ironGarhyPrice,
-            carats: manualCarats,
-            rates: {
-                EGP: manualEgpRate,
-                SAR: parseFloat(document.getElementById('manualSAR').value) || exchangeRates.SAR,
-                EUR: parseFloat(document.getElementById('manualEUR').value) || exchangeRates.EUR
-            },
-            makingCharges: {
-                k24: parseFloat(document.getElementById('making24k').value) || 0,
-                k21: parseFloat(document.getElementById('making21k').value) || 0,
-                k18: parseFloat(document.getElementById('making18k').value) || 0,
-                k14: parseFloat(document.getElementById('making14k').value) || 0,
-                k12: parseFloat(document.getElementById('making12k').value) || 0
-            },
-            lastUpdated: Date.now()
-        };
-
-        try {
-            await set(pricesRef, newPrices);
-            showToast("تم تحديث الأسعار عالمياً بنجاح ✅");
-            domElements.adminPanel.classList.add('hidden');
-        } catch (err) {
-            alert("فشل التحديث: " + err.message);
-        }
     });
 
     // ميزة طي القائمة الجانبية (Sidebar Toggle)
@@ -2199,85 +1961,3 @@ window.openArticleModal = (id) => {
         updateArticleSchema(art);
     }
 };
-
-function renderAdminArticles(filter = "") {
-    const container = document.getElementById('adminArticlesList');
-    if (!container) return;
-    const articles = Object.entries(allArticlesData).filter(([id, art]) =>
-        art.title.toLowerCase().includes(filter)
-    ).reverse();
-
-    container.innerHTML = articles.map(([id, art]) => `
-        <div class="flex items-center justify-between p-2 bg-slate-900/50 rounded-lg border border-slate-800">
-            <span class="text-xs text-white truncate w-40">${art.title}</span>
-            <div class="flex gap-2">
-                <button onclick="editArticle('${id}')" class="text-cyan-400 hover:text-cyan-300 p-1"><i class="fa-solid fa-pen"></i></button>
-                <button onclick="deleteArticle('${id}')" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-trash"></i></button>
-            </div>
-        </div>
-    `).join('') || '<p class="text-slate-500 text-center text-xs py-2">لا توجد نتائج</p>';
-}
-
-function updateLivePreview() {
-    const container = domElements.articlePreviewContainer;
-    if (!container) return;
-
-    const title = document.getElementById('articleTitle')?.value.trim() || '';
-    const image = document.getElementById('articleImage')?.value.trim() || '';
-    const summary = quill?.getText().trim() || '';
-
-    if (!title && !image && !summary) {
-        container.innerHTML = '<p class="text-sm text-slate-500 text-center py-6">اكتب بيانات المقال لتظهر المعاينة هنا.</p>';
-        return;
-    }
-
-    container.replaceChildren();
-    const card = document.createElement('article');
-    card.className = 'overflow-hidden rounded-xl border border-slate-800 bg-slate-900/40';
-
-    if (image) {
-        const previewImage = document.createElement('img');
-        previewImage.src = image;
-        previewImage.alt = title || 'صورة المقال';
-        previewImage.className = 'h-32 w-full object-cover';
-        previewImage.loading = 'lazy';
-        card.appendChild(previewImage);
-    }
-
-    const body = document.createElement('div');
-    body.className = 'p-4';
-    const heading = document.createElement('h5');
-    heading.className = 'font-bold text-white';
-    heading.textContent = title || 'عنوان المقال';
-    const text = document.createElement('p');
-    text.className = 'mt-2 text-xs text-slate-400 line-clamp-3';
-    text.textContent = summary || 'محتوى المقال سيظهر هنا.';
-    body.append(heading, text);
-    card.appendChild(body);
-    container.appendChild(card);
-}
-
-window.editArticle = (id) => {
-    const art = allArticlesData[id];
-    if (!art) return;
-    editArticleId = id;
-    document.getElementById('articleTitle').value = art.title;
-    document.getElementById('articleImage').value = art.image || "";
-    quill.root.innerHTML = art.content;
-    document.getElementById('cancelEditBtn').classList.remove('hidden');
-    document.getElementById('addArticleBtn').textContent = "تحديث المقال";
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
-window.deleteArticle = async (id) => {
-    if (confirm("هل أنت متأكد من حذف هذا المقال؟")) await remove(ref(db, `articles/${id}`));
-};
-
-function resetArticleForm() {
-    editArticleId = null;
-    document.getElementById('articleTitle').value = "";
-    document.getElementById('articleImage').value = "";
-    quill.setContents([]);
-    document.getElementById('cancelEditBtn').classList.add('hidden');
-    document.getElementById('addArticleBtn').textContent = "نشر المقال الآن";
-}
