@@ -537,6 +537,9 @@ function renderCurrencies() {
         const flagUrl = getSafeFlagUrl(code);
         const isFavorite = favorites.includes(code);
         const starIconClass = isFavorite ? 'fa-solid fa-star text-yellow-400' : 'fa-regular fa-star text-slate-500 group-hover:text-yellow-400';
+        const favoriteButtonLabel = currentLang === 'ar'
+            ? (isFavorite ? `إزالة ${code} من المفضلة` : `إضافة ${code} إلى المفضلة`)
+            : (isFavorite ? `Remove ${code} from favorites` : `Add ${code} to favorites`);
 
         return `
             <div class="flex items-center justify-between p-3 bg-slate-900/40 border border-slate-800 rounded-xl hover:border-cyan-500/30 transition-all group">
@@ -554,8 +557,8 @@ function renderCurrencies() {
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button class="text-lg p-1 focus:outline-none" onclick="toggleFavoriteCurrency('${code}')">
-                        <i class="${starIconClass}"></i>
+                    <button class="text-lg p-1 focus:outline-none" aria-label="${favoriteButtonLabel}" aria-pressed="${isFavorite}" onclick="toggleFavoriteCurrency('${code}')">
+                        <i class="${starIconClass}" aria-hidden="true"></i>
                     </button>
                     <div class="text-sm font-mono font-bold text-cyan-400 group-hover:scale-105 transition-transform">${rate.toFixed(2)}</div>
                 </div>

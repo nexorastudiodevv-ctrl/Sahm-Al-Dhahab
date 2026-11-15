@@ -181,6 +181,34 @@
 
     <!-- تخصيص بعض المؤثرات البصرية للنيون والزجاج الخلفي -->
     <style>
+      /* Keep Font Awesome icons while allowing text to render before the fonts arrive. */
+      @font-face {
+        font-family: "Font Awesome 6 Free";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-regular-400.woff2") format("woff2"),
+          url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-regular-400.ttf") format("truetype");
+      }
+
+      @font-face {
+        font-family: "Font Awesome 6 Free";
+        font-style: normal;
+        font-weight: 900;
+        font-display: swap;
+        src: url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2") format("woff2"),
+          url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.ttf") format("truetype");
+      }
+
+      @font-face {
+        font-family: "Font Awesome 6 Brands";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2") format("woff2"),
+          url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.ttf") format("truetype");
+      }
+
       :root {
         color-scheme: dark;
       }
@@ -2350,6 +2378,6 @@
     </button>
 
     <!-- رقم الإصدار يمنع Service Worker القديم من إعادة استخدام JavaScript غير متوافق. -->
-    <script type="module" src="app.js?v=20261115-1"></script>
+    <script type="module" src="app.js?v=20261115-2"></script>
   </body>
 </html>
