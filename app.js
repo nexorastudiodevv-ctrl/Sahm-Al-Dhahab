@@ -1,6 +1,6 @@
 // استيراد مكتبات Firebase بشكل صحيح
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, set, onValue, remove, query, orderByKey, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
@@ -35,7 +35,9 @@ const messaging = getMessaging(app);
 const pricesRef = ref(db, 'market_prices');
 const historyRef = ref(db, 'price_history');
 const articlesRef = ref(db, 'articles');
+const recentArticlesQuery = query(articlesRef, orderByKey(), limitToLast(3));
 let allArticlesData = {};
+let fullArticlesListenerAttached = false;
 
 // إعدادات API Ninjas (أدخل مفتاحك هنا لاحقاً)
 const NINJA_API_KEY = 'inmE8YUxP8omD7Ln9aA4xv1JaL3EVB47MJ3yQKyi';
@@ -263,12 +265,17 @@ window.switchMarketTab = (tabId) => {
 
     // تفعيل تأثير الانتقال للعناصر المرئية
     const activeContainers = [goldSection, currencySection, goldMainCard, goldCaratsGrid, metalsGrid, converter, historicalSection];
-    activeContainers.forEach(el => {
-        if (el && !el.classList.contains('hidden')) {
-            el.classList.remove('tab-switch-anim');
-            void el.offsetWidth; // إجبار المتصفح على إعادة الحساب لتشغيل الأنميشن
-            el.classList.add('tab-switch-anim');
-        }
+    const visibleContainers = activeContainers.filter(el => el && !el.classList.contains('hidden'));
+    visibleContainers.forEach(el => el.classList.remove('tab-switch-anim'));
+    // انتظر إطاراً مرسوماً قبل إعادة الحركة، من دون فرض إعادة تخطيط متزامنة.
+    window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+            visibleContainers.forEach(el => {
+                if (el.isConnected && !el.classList.contains('hidden')) {
+                    el.classList.add('tab-switch-anim');
+                }
+            });
+        });
     });
 
     // إعادة رسم القوائم بناءً على الفلتر الجديد
@@ -993,27 +1000,28 @@ function renderHistoricalTable() {
     });
 }
 
-// مراقبة المقالات من Firebase
-onValue(articlesRef, (snapshot) => {
-    const data = snapshot.val();
+function renderArticles(data, { renderFullList = false, notifyNewArticles = false } = {}) {
     if (!data) {
-        if (domElements.notificationsList) domElements.notificationsList.innerHTML = `<p class="text-[10px] text-slate-500 text-center py-6 italic">لا توجد إشعارات جديدة حالياً</p>`;
+        if (notifyNewArticles && domElements.notificationsList) {
+            domElements.notificationsList.innerHTML = `<p class="text-[10px] text-slate-500 text-center py-6 italic">لا توجد إشعارات جديدة حالياً</p>`;
+        }
         return;
     }
-    allArticlesData = data;
+    allArticlesData = renderFullList ? data : { ...allArticlesData, ...data };
     const articlesArray = Object.entries(data).reverse();
 
-    const seenArticles = JSON.parse(localStorage.getItem('goldhub_seen_articles') || '[]');
-    const newArticleEntries = articlesArray.filter(([id]) => !seenArticles.includes(id));
+    if (notifyNewArticles) {
+        const seenArticles = JSON.parse(localStorage.getItem('goldhub_seen_articles') || '[]');
+        const newArticleEntries = articlesArray.filter(([id]) => !seenArticles.includes(id));
 
-    // إضافة فقط المقالات الجديدة كإشعارات تلقائية
-    newArticleEntries.slice(0, 3).forEach(([id, art]) => {
-        addInternalNotification(art.title, id, 'article', art.summary || 'مقال جديد متاح الآن');
-    });
+        newArticleEntries.slice(0, 3).forEach(([id, art]) => {
+            addInternalNotification(art.title, id, 'article', art.summary || 'مقال جديد متاح الآن');
+        });
 
-    if (newArticleEntries.length) {
-        const latestIds = [...seenArticles, ...newArticleEntries.map(([id]) => id)].slice(-50);
-        localStorage.setItem('goldhub_seen_articles', JSON.stringify(latestIds));
+        if (newArticleEntries.length) {
+            const latestIds = [...seenArticles, ...newArticleEntries.map(([id]) => id)].slice(-50);
+            localStorage.setItem('goldhub_seen_articles', JSON.stringify(latestIds));
+        }
     }
 
     const articleHTML = (id, art) => `
@@ -1027,19 +1035,42 @@ onValue(articlesRef, (snapshot) => {
             </div>
         </div>`;
 
-    // تحديث صفحة المقالات الكاملة
-    const fullList = document.getElementById('articlesList');
-    if (fullList) {
-        fullList.innerHTML = articlesArray.map(([id, art]) => articleHTML(id, art)).join('');
+    if (renderFullList) {
+        const fullList = document.getElementById('articlesList');
+        if (fullList) {
+            fullList.innerHTML = articlesArray.map(([id, art]) => articleHTML(id, art)).join('');
+        }
     }
 
-    // تحديث قسم أحدث المقالات في الرئيسية (أول 3 مقالات فقط)
     const latestList = document.getElementById('latestArticlesList');
     if (latestList) {
         latestList.innerHTML = articlesArray.slice(0, 3).map(([id, art]) => articleHTML(id, art)).join('');
     }
+}
 
-});
+// حمّل المحتوى الكامل فقط عند فتح صفحة المقالات؛ الصفحة الرئيسية تتابع آخر ثلاثة مقالات.
+function loadAllArticles() {
+    if (fullArticlesListenerAttached) return;
+    fullArticlesListenerAttached = true;
+    onValue(
+        articlesRef,
+        snapshot => renderArticles(snapshot.val(), { renderFullList: true }),
+        error => {
+            fullArticlesListenerAttached = false;
+            console.error('تعذر تحميل المقالات الكاملة:', error);
+            showToast('تعذر تحميل المقالات الآن.');
+        }
+    );
+}
+
+onValue(
+    recentArticlesQuery,
+    snapshot => renderArticles(snapshot.val(), { notifyNewArticles: true }),
+    error => {
+        console.error('تعذر تحميل أحدث المقالات:', error);
+        showToast('تعذر تحميل أحدث المقالات الآن.');
+    }
+);
 
 function calculateConversion() {
     // استخدام العناصر المخزنة في domElements لتحسين الأداء
@@ -1259,6 +1290,8 @@ window.showToast = (msg) => {
 window.showSection = (sectionName) => {
     // العودة للأعلى تلقائياً عند تغيير القسم
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+   if (sectionName === 'articles') loadAllArticles();
 
    const sections = ['goldSection', 'currencySection', 'aboutSection', 'contactSection', 'privacySection', 'faqSection', 'nearbySection'];
     sections.forEach(s => document.getElementById(s)?.classList.add('hidden'));
