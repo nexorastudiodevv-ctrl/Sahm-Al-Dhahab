@@ -406,10 +406,10 @@ exchangeRates["XAU"] = 1 / goldPrice;
 exchangeRates["XAG"] = 1 / silverPrice;
 exchangeRates["XPT"] = 1 / platinumPrice;
 
-let isManualMode = false;
-// متغيرات تتبع توقيت آخر تحديث يدوي وآخر تحديث من API
-let manualLastUpdate = parseInt(localStorage.getItem('manual_last_update')) || 0;
-let apiLastUpdate = parseInt(localStorage.getItem('api_last_update')) || 0;
+// تقارن الطوابع الزمنية الصادرة عن المصدرين، لا وقت الطلب المحلي لكل جهاز.
+let manualLastUpdate = 0;
+let apiLastUpdate = 0;
+let latestApiGoldPrice = null;
 let caratPrices = { k24: goldPrice / OUNCE_TO_GRAM, k21: (goldPrice / OUNCE_TO_GRAM) * 0.875, k18: (goldPrice / OUNCE_TO_GRAM) * 0.75, k14: (goldPrice / OUNCE_TO_GRAM) * (14 / 24), k12: (goldPrice / OUNCE_TO_GRAM) * 0.5 };
 let previousSilverPrice = silverPrice;
 let previousPlatinumPrice = platinumPrice;
@@ -643,11 +643,8 @@ domElements.manualRefreshBtn?.addEventListener('click', async () => {
     btn.setAttribute('title', 'جارٍ تحديث الأسعار...');
 
     try {
-        isManualMode = false;
-        manualLastUpdate = 0;
-        localStorage.removeItem('manual_last_update');
         await fetchApiPrices();
-        showToast('تم تحديث الأسعار مباشرة من المصادر الحية');
+        showToast('تم فحص أحدث مصدر للسعر');
         addApiLog('✅ تم التحديث اليدوي المباشر بنجاح.');
     } catch (error) {
         console.error('❌ فشل التحديث اليدوي:', error);
@@ -660,15 +657,23 @@ domElements.manualRefreshBtn?.addEventListener('click', async () => {
     }
 });
 
-async function fetchApiPrices() {
-    if (isManualMode) return;
-    addApiLog("📡 جاري جلب البيانات من API...");
+function applyApiGoldPrice(price) {
+    previousGoldPrice = goldPrice;
+    previousCaratPrices = { ...caratPrices };
+    goldPrice = price;
+    exchangeRates["XAU"] = 1 / goldPrice;
+    updateCaratPrices(goldPrice);
+    localStorage.setItem('last_gold_price', goldPrice);
+    localStorage.setItem('last_rates', JSON.stringify(exchangeRates));
+    renderConverterOptions();
+}
 
-    // التحقق من التوقيت: إذا كان التحديث اليدوي أحدث من آخر تحديث API، نتجاهل بيانات الـ API
-    if (manualLastUpdate > 0 && manualLastUpdate > apiLastUpdate) {
-        addApiLog("⏸️ تم تجاهل بيانات الـ API لأن التحديث اليدوي أحدث.");
-        return;
-    }
+function isApiPriceNewer(apiUpdatedAt, dashboardUpdatedAt) {
+    return apiUpdatedAt > dashboardUpdatedAt;
+}
+
+async function fetchApiPrices() {
+    addApiLog("📡 جاري جلب البيانات من API...");
 
     // Telemetry سريع لسبب الثبات (يظهر داخل apiLogs)
     const startedAt = Date.now();
@@ -681,11 +686,14 @@ async function fetchApiPrices() {
     try {
         const apiRequests = [];
         const apiKeys = [];
+        let apiGoldPrice = null;
+        let apiGoldUpdatedAt = 0;
+        let hasNewApiGoldPrice = false;
 
         // إضافة timestamp لمنع الكاش من البروكسي
         const ts = Date.now();
 
-        apiRequests.push(fetch(`${EXTERNAL_APIS.CURRENCY}?ts=${ts}`).catch(err => {
+        apiRequests.push(fetch(`${EXTERNAL_APIS.CURRENCY}?ts=${ts}`, { cache: 'no-store' }).catch(err => {
             console.error("❌ فشل جلب العملات:", err);
             addApiLog(`❌ فشل جلب العملات: ${err.message || 'خطأ غير معروف'}`);
             return { status: 'rejected', reason: err };
@@ -706,33 +714,40 @@ async function fetchApiPrices() {
 
             await Promise.all(metals.map(async (metal) => {
                 try {
-                    const res = await fetch(EXTERNAL_APIS.NINJA_COMMODITY + metal.name, { headers });
+                    const res = await fetch(EXTERNAL_APIS.NINJA_COMMODITY + metal.name, {
+                        headers,
+                        cache: 'no-store'
+                    });
                     if (!res.ok) {
                         addApiLog(`⚠️ استجابة ${metal.key} غير صحيحة (${res.status}).`);
                         return;
                     }
                     const data = await res.json();
                     // API Ninjas تعيد {name, price, updated} أو [{name, price, updated}]
-                    const price = Array.isArray(data) ? data[0]?.price : data?.price;
-                    if (price) {
+                    const record = Array.isArray(data) ? data[0] : data;
+                    const price = Number(record?.price);
+                    if (Number.isFinite(price) && price > 0) {
                         if (metal.key === 'GOLD') {
-                            goldPrice = parseFloat(price);
-                            exchangeRates["XAU"] = 1 / goldPrice;
-                            updateCaratPrices(goldPrice);
-                            localStorage.setItem('last_gold_price', goldPrice);
+                            const updatedAt = Number(record.updated) * 1000;
+                            if (Number.isFinite(updatedAt) && updatedAt > 0) {
+                                apiGoldPrice = price;
+                                apiGoldUpdatedAt = updatedAt;
+                            } else {
+                                addApiLog("⚠️ تعذر تحديد وقت تحديث سعر الذهب من API Ninjas.");
+                            }
                         } else if (metal.key === 'SILVER') {
                             previousSilverPrice = silverPrice;
-                            silverPrice = parseFloat(price);
+                            silverPrice = price;
                             exchangeRates["XAG"] = 1 / silverPrice;
                             localStorage.setItem('last_silver_price', silverPrice);
                         } else if (metal.key === 'PLATINUM') {
                             previousPlatinumPrice = platinumPrice;
-                            platinumPrice = parseFloat(price);
+                            platinumPrice = price;
                             exchangeRates["XPT"] = 1 / platinumPrice;
                             localStorage.setItem('last_platinum_price', platinumPrice);
                         } else if (metal.key === 'COPPER') {
                             previousCopperPrice = copperPrice;
-                            copperPrice = parseFloat(price);
+                            copperPrice = price;
                             localStorage.setItem('last_copper_price', copperPrice);
                         }
                         addApiLog(`✅ تم تحديث ${metal.key} من API Ninjas.`);
@@ -765,8 +780,6 @@ async function fetchApiPrices() {
         if (currRes && currRes.status === 'fulfilled' && currRes.value.ok) {
             const currData = await currRes.value.json();
             if (currData?.rates) {
-                previousGoldPrice = goldPrice;
-                previousCaratPrices = { ...caratPrices };
                 // تحديث كائن الأسعار بجميع العملات التي يوفرها الـ API
                 exchangeRates = { ...exchangeRates, ...currData.rates };
 
@@ -778,16 +791,18 @@ async function fetchApiPrices() {
                     platinumPrice = 1 / currData.rates.XPT;
                     localStorage.setItem('last_platinum_price', platinumPrice);
                 }
-                localStorage.setItem('last_rates', JSON.stringify(exchangeRates));
-
-                // --- نظام الاحتياط (Fallback) في حال فشل Binance ---
-                if (!processedResults.GOLD || processedResults.GOLD.status === 'rejected' || !processedResults.GOLD.value.ok) {
-                    if (currData.rates.XAU) {
-                        goldPrice = 1 / currData.rates.XAU;
-                        exchangeRates["XAU"] = 1 / goldPrice;
-                        updateCaratPrices(goldPrice);
-                        addApiLog("✅ تم استخدام سعر الذهب الاحتياطي.");
-                    }
+                // استخدم سعر العملات احتياطياً فقط إذا كان تحديثه أحدث من API Ninjas.
+                const currencyUpdatedAt = Number(currData.time_last_update_unix) * 1000;
+                const fallbackGoldPrice = Number(currData.rates.XAU) > 0
+                    ? 1 / Number(currData.rates.XAU)
+                    : 0;
+                if (
+                    fallbackGoldPrice > 0 &&
+                    Number.isFinite(currencyUpdatedAt) &&
+                    currencyUpdatedAt > apiGoldUpdatedAt
+                ) {
+                    apiGoldPrice = fallbackGoldPrice;
+                    apiGoldUpdatedAt = currencyUpdatedAt;
                 }
 
                 if (!processedResults.SILVER || processedResults.SILVER.status === 'rejected' || !processedResults.SILVER.value.ok) {
@@ -802,7 +817,6 @@ async function fetchApiPrices() {
                     }
                 }
             }
-            renderConverterOptions();
         } else if (currRes && currRes.status === 'rejected') {
             // Error already logged in the catch block of the fetch call
         } else {
@@ -828,9 +842,19 @@ async function fetchApiPrices() {
 addApiLog("⚠️ أسعار الحديد تستخدم البيانات المحلية (رابط API غير متاح أو استجابة غير صالحة).");
         }
 
-        // تسجيل توقيت آخر تحديث ناجح من الـ API
-        apiLastUpdate = Date.now();
-        localStorage.setItem('api_last_update', apiLastUpdate);
+        if (apiGoldPrice !== null && apiGoldUpdatedAt > apiLastUpdate) {
+            apiLastUpdate = apiGoldUpdatedAt;
+            latestApiGoldPrice = apiGoldPrice;
+            hasNewApiGoldPrice = true;
+        }
+
+        if (hasNewApiGoldPrice && isApiPriceNewer(apiLastUpdate, manualLastUpdate)) {
+            applyApiGoldPrice(latestApiGoldPrice);
+        }
+
+        if (goldPrice > 0) exchangeRates["XAU"] = 1 / goldPrice;
+        localStorage.setItem('last_rates', JSON.stringify(exchangeRates));
+        renderConverterOptions();
 
         updateUI();
     } catch (error) {
@@ -946,31 +970,39 @@ onValue(pricesRef, (snapshot) => {
     const data = snapshot.val();
     if (!data || !data.gold) {
         // لا توجد بيانات يدوية أو تم حذفها -> العودة للوضع التلقائي
-        isManualMode = false;
         manualLastUpdate = 0;
-        localStorage.removeItem('manual_last_update');
-        if (apiLastUpdate === 0) scheduleApiPriceFetch();
+        if (latestApiGoldPrice !== null) {
+            applyApiGoldPrice(latestApiGoldPrice);
+            updateUI();
+        } else {
+            scheduleApiPriceFetch();
+        }
         return;
     }
 
     const serverTime = Number(data.lastUpdated) || 0;
-    // السعر اليدوي يتفوق فقط إذا كان أحدث من آخر تحديث API
-    if (serverTime > 0 && serverTime < apiLastUpdate) {
-        // الـ API أحدث -> لا نطبق القيم اليدوية الآن
-        return;
-    }
+    manualLastUpdate = serverTime;
+    const apiPriceIsNewer = latestApiGoldPrice !== null
+        && isApiPriceNewer(apiLastUpdate, serverTime);
 
     previousGoldPrice = goldPrice;
     previousCaratPrices = { ...caratPrices };
 
-    // تحديث سعر الأونصة من قاعدة البيانات
-    goldPrice = Number(data.gold) || goldPrice;
+    // حدّث الذهب من المصدر الأحدث، مع تطبيق بقية قيم Firebase كالمعتاد.
+    goldPrice = apiPriceIsNewer ? latestApiGoldPrice : (Number(data.gold) || goldPrice);
     exchangeRates = { ...(data.rates || exchangeRates) };
     exchangeRates["USD"] = 1;
+    exchangeRates["XAU"] = 1 / goldPrice;
 
     // إعادة حساب العيارات بناءً على سعر الأونصة المحدث يدوياً لضمان الربط
     const gram24USD = goldPrice / OUNCE_TO_GRAM;
-    caratPrices = {
+    caratPrices = apiPriceIsNewer ? {
+        k24: gram24USD,
+        k21: gram24USD * 0.875,
+        k18: gram24USD * 0.75,
+        k14: gram24USD * (14 / 24),
+        k12: gram24USD * 0.5
+    } : {
         k24: data.carats?.k24 || gram24USD,
         k21: data.carats?.k21 || (gram24USD * 0.875),
         k18: data.carats?.k18 || (gram24USD * 0.75),
@@ -987,20 +1019,15 @@ onValue(pricesRef, (snapshot) => {
     if (data.ironGarhy) { previousIronGarhyPrice = ironGarhyPrice; ironGarhyPrice = data.ironGarhy; }
     if (data.makingCharges) makingCharges = data.makingCharges;
 
-    isManualMode = true;
-    manualLastUpdate = serverTime > 0 ? serverTime : Date.now();
-    localStorage.setItem('manual_last_update', manualLastUpdate);
     localStorage.setItem('last_gold_price', goldPrice);
     localStorage.setItem('last_rates', JSON.stringify(exchangeRates));
     renderConverterOptions();
     updateUI();
 });
 
-// تشغيل الـ APIs فوراً لضمان عرض الأسعار بدون انتظار Firebase
-if (!isManualMode) {
-    window.requestAnimationFrame(updateUI);
-    scheduleApiPriceFetch();
-}
+// تشغيل الـ APIs فوراً لضمان مقارنة المصدرين دون انتظار Firebase.
+window.requestAnimationFrame(updateUI);
+scheduleApiPriceFetch();
 
 // دالة عرض جدول البيانات التاريخية (مقتبس من الموقع المطلوب)
 function renderHistoricalTable() {
@@ -1745,18 +1772,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
-    // تفعيل زر التحديث اليدوي
-    domElements.manualRefreshBtn?.addEventListener('click', () => {
-        if (!isManualMode) {
-            showToast("جاري تحديث الأسعار...");
-            fetchApiPrices();
-            addApiLog("🔄 تم طلب تحديث يدوي للأسعار.");
-        }
-    });
-
     setInterval(simulateMarket, 5000);
     // تحديث كل 5 دقائق (300,000ms) بدلاً من دقيقة واحدة لتوفير استهلاك الـ API
-    setInterval(() => { if (!isManualMode) fetchApiPrices(); }, 300000);
+    setInterval(fetchApiPrices, 300000);
 
     // أحداث إضافية للواجهة
     // استخدام Debounce للبحث لتقليل العمليات الحسابية المتكررة أثناء الكتابة السريعة

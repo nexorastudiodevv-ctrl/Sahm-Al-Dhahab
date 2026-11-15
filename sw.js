@@ -25,7 +25,7 @@ try {
     console.error("⚠️ Failed to initialize Firebase Messaging in SW:", err);
 }
 
-const CACHE_NAME = 'gold-hub-v10';
+const CACHE_NAME = 'gold-hub-v11';
 const ASSETS = [
     'index.html',
     'manifest.json',
@@ -67,8 +67,11 @@ self.addEventListener('fetch', (e) => {
     // تجاهل الطلبات التي ليست من نوع GET (مثل رفع الصور عبر POST) لأن التخزين المؤقت لا يدعمها
     if (e.request.method !== 'GET' || e.request.url.includes('firebaseio.com')) return;
 
-    // صفحات HTML يجب أن تصل من الشبكة أولاً كي يرى الزائر آخر تحديثات المحتوى والتواصل.
     const requestUrl = new URL(e.request.url);
+    // أسعار السوق يجب أن تأتي من المصدر مباشرة، لا من ذاكرة PWA قديمة.
+    if (requestUrl.hostname === 'api.api-ninjas.com' || requestUrl.hostname === 'open.er-api.com') return;
+
+    // صفحات HTML يجب أن تصل من الشبكة أولاً كي يرى الزائر آخر تحديثات المحتوى والتواصل.
     if (requestUrl.pathname === '/admin' || requestUrl.pathname.startsWith('/admin/')) return;
 
     if (e.request.mode === 'navigate' || requestUrl.pathname.endsWith('.html')) {
