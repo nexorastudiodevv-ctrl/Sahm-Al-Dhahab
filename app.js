@@ -2,7 +2,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, onValue, remove, query, orderByKey, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
-import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
 // مراقب الأخطاء العالمي
 window.addEventListener('error', (event) => {
@@ -31,7 +30,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const analytics = getAnalytics(app);
-const messaging = getMessaging(app);
 const pricesRef = ref(db, 'market_prices');
 const historyRef = ref(db, 'price_history');
 const articlesRef = ref(db, 'articles');
@@ -598,6 +596,11 @@ async function initPushNotifications(registration) {
                 return; // إخفاء التنبيه في القنصل لحين وضع المفتاح الحقيقي
             }
 
+            // حمّل Firebase Messaging فقط عند تفعيل الإشعارات.
+            const { getMessaging, getToken } = await import(
+                "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js"
+            );
+            const messaging = getMessaging(app);
             const token = await getToken(messaging, {
                 vapidKey: vapidKey,
                 serviceWorkerRegistration: registration
