@@ -688,12 +688,12 @@ async function fetchApiPrices() {
                 { name: 'copper', key: 'COPPER' }
             ];
 
-            for (const metal of metals) {
+            await Promise.all(metals.map(async (metal) => {
                 try {
                     const res = await fetch(EXTERNAL_APIS.NINJA_COMMODITY + metal.name, { headers });
                     if (!res.ok) {
                         addApiLog(`⚠️ استجابة ${metal.key} غير صحيحة (${res.status}).`);
-                        continue;
+                        return;
                     }
                     const data = await res.json();
                     // API Ninjas تعيد {name, price, updated} أو [{name, price, updated}]
@@ -726,7 +726,7 @@ async function fetchApiPrices() {
                 } catch (e) {
                     addApiLog(`❌ فشل جلب ${metal.key} من API Ninjas.`);
                 }
-            }
+            }));
         }
 
         if (EXTERNAL_APIS.IRON) {
@@ -967,6 +967,7 @@ onValue(pricesRef, (snapshot) => {
 
 // تشغيل الـ APIs فوراً لضمان عرض الأسعار بدون انتظار Firebase
 if (!isManualMode) {
+    updateUI();
     fetchApiPrices();
 }
 
