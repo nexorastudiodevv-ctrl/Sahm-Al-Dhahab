@@ -1,7 +1,6 @@
 // استيراد مكتبات Firebase بشكل صحيح
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, onValue, remove, query, orderByKey, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 
 // مراقب الأخطاء العالمي
 window.addEventListener('error', (event) => {
@@ -29,7 +28,21 @@ const firebaseConfig = {
 // تهيئة Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const analytics = getAnalytics(app);
+
+// ابدأ تحميل التحليلات بعد إتاحة إطارين للرسم الأولي.
+window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(async () => {
+        try {
+            const { getAnalytics } = await import(
+                "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js"
+            );
+            getAnalytics(app);
+        } catch (error) {
+            console.warn("⚠️ Firebase Analytics initialization failed:", error);
+        }
+    });
+});
+
 const pricesRef = ref(db, 'market_prices');
 const historyRef = ref(db, 'price_history');
 const articlesRef = ref(db, 'articles');
