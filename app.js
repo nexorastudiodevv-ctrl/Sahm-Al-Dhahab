@@ -132,6 +132,7 @@ const domElements = {
     nearbyExchangesList: document.getElementById('nearbyExchangesList'),
     conversionResult: document.getElementById('conversionResult'),
     amountInput: document.getElementById('amountInput'),
+    sourceCurrency: document.getElementById('sourceCurrency'),
     searchNewAreaBtn: document.getElementById('searchNewAreaBtn'),
     searchNewAreaText: document.getElementById('searchNewAreaText'),
     displayCurrency: document.getElementById('displayCurrency'),
@@ -482,13 +483,14 @@ window.applyTranslations = () => {
 
 // تحديث خيارات محول العملات مع ميزة البحث
 function renderConverterOptions() {
-    // جلب العناصر مباشرة لضمان عدم وجود أخطاء Null
+    const sourceEl = document.getElementById('sourceCurrency');
     const targetEl = document.getElementById('targetCurrency');
 
-    if (!targetEl) return;
+    if (!sourceEl && !targetEl) return;
 
     const searchTerm = "";
-    const currentTarget = targetEl ? targetEl.value : "EGP";
+    const currentSource = sourceEl?.value || "USD";
+    const currentTarget = targetEl?.value || "EGP";
 
     // دمج العملات والمعادن في قائمة واحدة مرتبة
     let availableCurrencies = [...new Set(["USD", "XAU", "XAG", "XPT", ...Object.keys(exchangeRates)])];
@@ -525,8 +527,14 @@ function renderConverterOptions() {
         }
     }
 
-    targetEl.innerHTML = optionsHtml;
-    targetEl.value = currentTarget;
+    if (sourceEl) {
+        sourceEl.innerHTML = optionsHtml;
+        sourceEl.value = availableCurrencies.includes(currentSource) ? currentSource : "USD";
+    }
+    if (targetEl) {
+        targetEl.innerHTML = optionsHtml;
+        targetEl.value = availableCurrencies.includes(currentTarget) ? currentTarget : "USD";
+    }
 }
 
 // عرض قائمة العملات في الواجهة
@@ -1140,7 +1148,7 @@ onValue(
 function calculateConversion() {
     // استخدام العناصر المخزنة في domElements لتحسين الأداء
     const amount = parseFloat(domElements.amountInput?.value) || 0;
-    const fromCurrency = "USD"; // العملة الأساسية ثابتة حالياً في محول العملات السريع
+    const fromCurrency = domElements.sourceCurrency?.value || "USD";
     const toCurrency = domElements.targetCurrency?.value || "EGP";
 
     // مزامنة أسعار المعادن الحالية قبل إجراء عملية التحويل
@@ -1784,6 +1792,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const debouncedRenderCurrencies = debounce(() => renderCurrencies());
     document.getElementById('searchInput')?.addEventListener('input', debouncedRenderCurrencies);
     document.getElementById('amountInput')?.addEventListener('input', calculateConversion);
+    document.getElementById('sourceCurrency')?.addEventListener('change', calculateConversion);
     document.getElementById('targetCurrency')?.addEventListener('change', calculateConversion);
     document.getElementById('amountInput')?.addEventListener('change', calculateConversion);
 
