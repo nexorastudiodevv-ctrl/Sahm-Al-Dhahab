@@ -1488,6 +1488,28 @@
               >
                 أسعار العملات الرئيسية
               </h3>
+              <div class="relative">
+                <label
+                  for="currencySearchInput"
+                  class="sr-only"
+                  data-i18n="search_currency"
+                >
+                  ابحث عن عملة
+                </label>
+                <span
+                  class="absolute inset-y-0 start-0 flex items-center ps-3 text-slate-500"
+                  aria-hidden="true"
+                >
+                  <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                </span>
+                <input
+                  type="search"
+                  id="currencySearchInput"
+                  data-i18n="search_currency"
+                  placeholder="ابحث عن عملة..."
+                  class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 ps-10 pe-4 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50 transition"
+                />
+              </div>
 
               <div
                 id="currencyList"

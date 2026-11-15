@@ -67,8 +67,13 @@ const currencyToCountryCode = {
     "XAU": "gold", "XAG": "silver", "XPT": "platinum",
     "JPY": "JP", "AED": "AE", "KWD": "KW", "QAR": "QA", "BHD": "BH",
     "OMR": "OM", "JOD": "JO", "TRY": "TR", "CAD": "CA", "AUD": "AU",
-    "CHF": "CH", "CNY": "CN", "XAF": "CM", "XOF": "SN", "XPF": "PF",
-    "XCD": "LC", "ANG": "CW"
+    "CHF": "CH", "CNY": "CN", "INR": "IN", "RUB": "RU", "BRL": "BR",
+    "MXN": "MX", "ZAR": "ZA", "KRW": "KR", "SGD": "SG", "HKD": "HK",
+    "NZD": "NZ", "SEK": "SE", "NOK": "NO", "DKK": "DK", "PLN": "PL",
+    "THB": "TH", "IDR": "ID", "MYR": "MY", "PHP": "PH", "VND": "VN",
+    "PKR": "PK", "BDT": "BD", "NGN": "NG", "UAH": "UA", "ILS": "IL",
+    "CZK": "CZ", "HUF": "HU", "RON": "RO",
+    "XAF": "CM", "XOF": "SN", "XPF": "PF", "XCD": "LC", "ANG": "CW"
 };
 
 // نظام الترجمة
@@ -79,7 +84,7 @@ const translations = {
 about: "من نحن", contact: "اتصل بنا",
         privacy: "سياسة الخصوصية", live_market: "سوق المال المباشر", sub_heading: "تحديثات فورية لأسعار الذهب العالمية والمعادن",
         up: "صعود", down: "هبوط", stable: "ثابت", live_update: "تحديث مباشر", share: "مشاركة السعر",
-        converter: "محول العملات السريع", result: "النتيجة التقريبية", search: "ابحث عن عملة أو عيار..."
+        converter: "محول العملات السريع", result: "النتيجة التقريبية", search: "ابحث عن عملة أو عيار...", search_currency: "ابحث عن عملة..."
     },
     en: {
         gold_oz: "Gold Price per Ounce (USD)", gold_g: "Gold Price per Gram (USD)", silver_oz: "Silver Ounce", platinum_oz: "Platinum Ounce", iron_ezz: "Ezz Steel (Ton)", iron_egyptians: "Egyptian Steel (Ton)", iron_garhy: "El Garhy Steel (Ton)",
@@ -87,7 +92,7 @@ about: "من نحن", contact: "اتصل بنا",
         about: "About Us", contact: "Contact Us",
         privacy: "Privacy Policy", live_market: "Live Market Hub", sub_heading: "Real-time updates for global gold and metal prices",
         up: "Up", down: "Down", stable: "Stable", live_update: "Live Update", share: "Share Price",
-        converter: "Currency Converter", result: "Approximate Result", search: "Search currency or carat..."
+        converter: "Currency Converter", result: "Approximate Result", search: "Search currency or carat...", search_currency: "Search currencies..."
     }
 };
 
@@ -125,6 +130,7 @@ const domElements = {
     ironGarhyPrice: document.getElementById('ironGarhyPrice'),
     ironGarhyTrend: document.getElementById('ironGarhyTrend'),
     currencyList: document.getElementById('currencyList'),
+    currencySearchInput: document.getElementById('currencySearchInput'),
     historicalSection: document.getElementById('historicalSection'),
     historicalTableBody: document.getElementById('historicalTableBody'),
     marketTabs: document.getElementById('marketTabs'),
@@ -540,14 +546,23 @@ function renderConverterOptions() {
 // عرض قائمة العملات في الواجهة
 function renderCurrencies() {
     if (!domElements.currencyList) return;
-    const searchTerm = domElements.searchInput?.value.toLowerCase() || "";
+    const searchTerm = normalizeSearchText(domElements.currencySearchInput?.value || domElements.searchInput?.value || "");
+    const locale = currentLang === 'ar' ? 'ar' : 'en';
+    const currencyNames = new Intl.DisplayNames([locale], { type: 'currency' });
+    const countryNames = new Intl.DisplayNames([locale], { type: 'region' });
 
     const favorites = JSON.parse(localStorage.getItem('favoriteCurrencies')) || [];
 
     // تصفية العملات بناءً على التبويب النشط والبحث
     const filteredRates = Object.entries(exchangeRates).filter(([code]) => {
         const isMetal = ['XAU', 'XAG', 'XPT'].includes(code);
-        const matchesSearch = code.toLowerCase().includes(searchTerm);
+        const countryCode = currencyToCountryCode[code];
+        const currencyName = /^[A-Z]{3}$/.test(code) ? currencyNames.of(code) : '';
+        const countryName = /^[A-Z]{2}$/.test(countryCode) ? countryNames.of(countryCode) : '';
+        const matchesSearch = !searchTerm ||
+            normalizeSearchText(code).includes(searchTerm) ||
+            matchesSearchName(currencyName, searchTerm) ||
+            matchesSearchName(countryName, searchTerm);
 
         if (activeMarketTab === 'favorites') {
             return matchesSearch && favorites.includes(code) && !isMetal;
@@ -587,6 +602,24 @@ function renderCurrencies() {
             </div>
         `;
     }).join('');
+}
+
+function normalizeSearchText(value) {
+    return value.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u064B-\u065F\u0670\u0640]/g, '')
+        .replace(/[أإآ]/g, 'ا')
+        .replace(/(^|\s)ال/g, '$1')
+        .replace(/ى/g, 'ي')
+        .replace(/ة/g, 'ه')
+        .trim();
+}
+
+function matchesSearchName(name, searchTerm) {
+    const normalizedName = normalizeSearchText(name || '');
+    return normalizedName.split(/\s+/).some(term =>
+        term === searchTerm || (searchTerm.length >= 4 && term.startsWith(searchTerm))
+    ) || (searchTerm.includes(' ') && normalizedName.includes(searchTerm));
 }
 
 // دالة لتبديل حالة العملة كمفضلة
@@ -1790,7 +1823,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // أحداث إضافية للواجهة
     // استخدام Debounce للبحث لتقليل العمليات الحسابية المتكررة أثناء الكتابة السريعة
     const debouncedRenderCurrencies = debounce(() => renderCurrencies());
-    document.getElementById('searchInput')?.addEventListener('input', debouncedRenderCurrencies);
+    [domElements.searchInput, domElements.currencySearchInput].forEach((input) => {
+        input?.addEventListener('input', () => {
+            const otherInput = input === domElements.searchInput
+                ? domElements.currencySearchInput
+                : domElements.searchInput;
+            if (otherInput && otherInput.value !== input.value) {
+                otherInput.value = input.value;
+            }
+            debouncedRenderCurrencies();
+        });
+    });
     document.getElementById('amountInput')?.addEventListener('input', calculateConversion);
     document.getElementById('sourceCurrency')?.addEventListener('change', calculateConversion);
     document.getElementById('targetCurrency')?.addEventListener('change', calculateConversion);
