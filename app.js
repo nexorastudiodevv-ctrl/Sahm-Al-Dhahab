@@ -445,6 +445,9 @@ async function loadChart() {
     if (goldChart) return;
     await loadScriptOnce('chartjs-script', 'https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js');
     initChart();
+    if (priceHistory[priceHistory.length - 1] !== goldPrice) {
+        updateChart(goldPrice);
+    }
 }
 
 let previousGoldPrice = goldPrice;
@@ -906,7 +909,7 @@ function initChart() {
                 fill: true,
                 backgroundColor: gradient,
                 tension: 0.4,
-                pointRadius: 0, // إلغاء رسم النقاط الفردية لزيادة سرعة الرندر
+                pointRadius: (context) => context.dataset.data.length === 1 ? 2 : 0,
                 borderJoinStyle: 'round',
                 spanGaps: true
             }]
