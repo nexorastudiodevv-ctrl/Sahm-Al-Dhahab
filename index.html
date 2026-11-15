@@ -227,6 +227,16 @@
         background-attachment: fixed;
       }
 
+      /* Keep platform colors explicit because the local Tailwind build omits arbitrary hex utilities. */
+      .social-icon-facebook { color: #1877F2; }
+      .social-icon-facebook:hover { color: #166fe5; }
+      .social-icon-whatsapp { color: #25D366; }
+      .social-icon-whatsapp:hover { color: #1ebe5b; }
+      .social-icon-x { color: #fff; }
+      .social-icon-x:hover { color: #d1d5db; }
+      .social-icon-telegram { color: #2AABEE; }
+      .social-icon-telegram:hover { color: #1ea3de; }
+
       ::selection {
         background: rgba(34, 211, 238, 0.25);
         color: #f8fafc;
@@ -769,30 +779,30 @@
             target="_blank"
             rel="noopener noreferrer"
             title="فيسبوك"
-            class="text-[#1877F2] hover:text-[#166fe5] transition-all transform hover:scale-110"
+            class="transition-all transform hover:scale-110"
             aria-label="صفحتنا على فيسبوك"
           >
-            <i class="fa-brands fa-facebook-f text-lg"></i>
+            <i class="fa-brands fa-facebook-f text-lg social-icon-facebook"></i>
           </a>
           <a
             href="https://x.com/they_Gold077"
             target="_blank"
             rel="noopener noreferrer"
             title="تويتر"
-            class="text-white hover:text-[#d1d5db] transition-all transform hover:scale-110"
+            class="transition-all transform hover:scale-110"
             aria-label="حسابنا على تويتر"
           >
-            <i class="fa-brands fa-x-twitter text-lg"></i>
+            <i class="fa-brands fa-x-twitter text-lg social-icon-x"></i>
           </a>
           <a
             href="https://t.me/yourchannel"
             href="https://t.me/YourHandle"
             target="_blank"
             title="تيليجرام"
-            class="text-[#2AABEE] hover:text-[#1ea3de] transition-all transform hover:scale-110"
+            class="transition-all transform hover:scale-110"
             aria-label="قناتنا على تيليجرام"
           >
-            <i class="fa-brands fa-telegram text-lg"></i>
+            <i class="fa-brands fa-telegram text-lg social-icon-telegram"></i>
           </a>
         </div>
       </div>
@@ -2120,36 +2130,36 @@
               href="https://www.facebook.com/share/1CoGn7qb6p/"
               target="_blank"
               rel="noopener noreferrer"
-              class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-[#1877F2] hover:text-[#166fe5] hover:border-[#1877F2]/50 transition-all shadow-lg hover:shadow-[#1877F2]/20"
+              class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center transition-all shadow-lg"
               aria-label="صفحتنا على فيسبوك"
             >
-              <i class="fa-brands fa-facebook-f text-xl"></i>
+              <i class="fa-brands fa-facebook-f text-xl social-icon-facebook"></i>
             </a>
             <a
               href="https://whatsapp.com/channel/0029VbDRkFCBVJlApUBnm61B"
               target="_blank"
-              class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-[#25D366] hover:text-[#1ebe5b] hover:border-[#25D366]/50 transition-all shadow-lg hover:shadow-[#25D366]/20 animate-pulse"
+              class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center transition-all shadow-lg animate-pulse"
               aria-label="قناتنا على واتساب"
             >
-              <i class="fa-brands fa-whatsapp text-xl"></i>
+              <i class="fa-brands fa-whatsapp text-xl social-icon-whatsapp"></i>
             </a>
             <a
               href="https://x.com/they_Gold077"
               target="_blank"
               rel="noopener noreferrer"
-              class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-white hover:text-[#d1d5db] hover:border-white/50 transition-all shadow-lg hover:shadow-white/20"
+              class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center transition-all shadow-lg"
               aria-label="حسابنا على تويتر"
             >
-              <i class="fa-brands fa-x-twitter text-xl"></i>
+              <i class="fa-brands fa-x-twitter text-xl social-icon-x"></i>
             </a>
             <a
               href="https://t.me/goldhub"
               href="https://t.me/YourHandle"
               target="_blank"
-              class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-[#2AABEE] hover:text-[#1ea3de] hover:border-[#2AABEE]/50 transition-all shadow-lg hover:shadow-[#2AABEE]/20"
+              class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center transition-all shadow-lg"
               aria-label="قناتنا على تيليجرام"
             >
-              <i class="fa-brands fa-telegram text-xl"></i>
+              <i class="fa-brands fa-telegram text-xl social-icon-telegram"></i>
             </a>
           </div>
           <div class="space-y-2">
