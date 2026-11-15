@@ -2175,6 +2175,12 @@
           </div>
         </footer>
       </div>
+      <!-- نقطة مراقبة خفية لتحديد قرب نهاية الصفحة دون قياس أبعادها أثناء التمرير -->
+      <div
+        id="scrollBottomSentinel"
+        aria-hidden="true"
+        style="width:1px;height:1px;margin:0;pointer-events:none"
+      ></div>
     </main>
 
     <!-- 3. شريط التنقل السفلي للهواتف (Mobile Bottom Nav) -->
@@ -2377,6 +2383,6 @@
     </button>
 
     <!-- رقم الإصدار يمنع Service Worker القديم من إعادة استخدام JavaScript غير متوافق. -->
-    <script type="module" src="app.js?v=20261115-3"></script>
+    <script type="module" src="app.js?v=20261115-4"></script>
   </body>
 </html>

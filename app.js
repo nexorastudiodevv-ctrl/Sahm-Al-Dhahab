@@ -822,6 +822,21 @@ addApiLog("⚠️ أسعار الحديد تستخدم البيانات المح
     }
 }
 
+let apiPriceFetchScheduled = false;
+function scheduleApiPriceFetch() {
+    if (apiPriceFetchScheduled) return;
+    apiPriceFetchScheduled = true;
+
+    // إتاحة إطار للرسم لعرض الأسعار المحفوظة قبل بدء طلبات الشبكة.
+    window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+            fetchApiPrices()
+                .catch(error => console.error("❌ تعذر بدء جلب الأسعار:", error))
+                .finally(() => { apiPriceFetchScheduled = false; });
+        });
+    });
+}
+
 // دالة مساعدة لتحديث أسعار العيارات بناءً على سعر الأونصة
 function updateCaratPrices(ozPrice) {
     const gram24USD = ozPrice / OUNCE_TO_GRAM;
@@ -918,7 +933,7 @@ onValue(pricesRef, (snapshot) => {
         isManualMode = false;
         manualLastUpdate = 0;
         localStorage.removeItem('manual_last_update');
-        if (apiLastUpdate === 0) fetchApiPrices();
+        if (apiLastUpdate === 0) scheduleApiPriceFetch();
         return;
     }
 
@@ -967,8 +982,8 @@ onValue(pricesRef, (snapshot) => {
 
 // تشغيل الـ APIs فوراً لضمان عرض الأسعار بدون انتظار Firebase
 if (!isManualMode) {
-    updateUI();
-    fetchApiPrices();
+    window.requestAnimationFrame(updateUI);
+    scheduleApiPriceFetch();
 }
 
 // دالة عرض جدول البيانات التاريخية (مقتبس من الموقع المطلوب)
@@ -1901,8 +1916,6 @@ function handleScrollToTopBottom() {
     if (!domElements.scrollToTopBottomBtn || !domElements.scrollIcon) return;
 
     const scrollThreshold = 200; // المسافة بالبكسل التي يجب أن ينزلها المستخدم لإظهار الزر
-    const scrollHeight = document.documentElement.scrollHeight;
-    const clientHeight = document.documentElement.clientHeight;
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
 
     // إظهار أو إخفاء الزر
@@ -1911,19 +1924,29 @@ function handleScrollToTopBottom() {
     } else {
         domElements.scrollToTopBottomBtn.classList.add('hidden');
     }
-
-    // تغيير الأيقونة بناءً على موقع التمرير
-    if (scrollTop + clientHeight >= scrollHeight - scrollThreshold) { // إذا كان المستخدم قريباً من الأسفل
-        domElements.scrollIcon.classList.remove('fa-arrow-down');
-        domElements.scrollIcon.classList.add('fa-arrow-up');
-    } else { // إذا كان المستخدم في أي مكان آخر
-        domElements.scrollIcon.classList.remove('fa-arrow-up');
-        domElements.scrollIcon.classList.add('fa-arrow-down');
-    }
 }
 
-// إضافة مستمع لحدث التمرير
-window.addEventListener('scroll', handleScrollToTopBottom);
+window.addEventListener('scroll', handleScrollToTopBottom, { passive: true });
+
+const scrollBottomSentinel = document.getElementById('scrollBottomSentinel');
+if (scrollBottomSentinel && 'IntersectionObserver' in window) {
+    const scrollBottomObserver = new IntersectionObserver(([entry]) => {
+        if (!entry || !domElements.scrollIcon) return;
+        domElements.scrollIcon.classList.toggle('fa-arrow-up', entry.isIntersecting);
+        domElements.scrollIcon.classList.toggle('fa-arrow-down', !entry.isIntersecting);
+    }, { rootMargin: '0px 0px 200px 0px' });
+    scrollBottomObserver.observe(scrollBottomSentinel);
+} else {
+    const updateScrollDirection = () => {
+        if (!domElements.scrollIcon) return;
+        const isNearBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 200;
+        domElements.scrollIcon.classList.toggle('fa-arrow-up', isNearBottom);
+        domElements.scrollIcon.classList.toggle('fa-arrow-down', !isNearBottom);
+    };
+    window.addEventListener('scroll', updateScrollDirection, { passive: true });
+    window.addEventListener('resize', updateScrollDirection);
+    updateScrollDirection();
+}
 
 // إضافة مستمع لحدث النقر على الزر
 domElements.scrollToTopBottomBtn?.addEventListener('click', () => {
