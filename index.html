@@ -1647,7 +1647,7 @@
           <!-- قسم أحدث المقالات (يظهر في الصفحة الرئيسية) -->
           <div id="latestArticlesHome" class="lg:col-span-3 space-y-6">
             <div
-              class="flex justify-between items-center border-b border-slate-800 pb-4"
+              class="flex flex-wrap justify-between items-center border-b border-slate-800 pb-4"
             >
               <div>
                 <h3
@@ -1660,13 +1660,22 @@
                   تابع أحدث التقارير المالية من سهم الذهب
                 </p>
               </div>
-              <button
-                onclick="showSection('articles')"
-                class="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-cyan-400 text-xs font-bold hover:bg-slate-800 hover:text-white transition flex items-center gap-2"
-                aria-label="عرض كافة المقالات"
-              >
-                كافة المقالات <i class="fa-solid fa-arrow-left"></i>
-              </button>
+              <div class="flex flex-wrap items-center gap-2">
+                <a
+                  href="/articles/"
+                  class="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-cyan-400 text-xs font-bold hover:bg-slate-800 hover:text-white transition"
+                  aria-label="تصفح أرشيف المقالات المنشورة"
+                >
+                  أرشيف المقالات
+                </a>
+                <button
+                  onclick="showSection('articles')"
+                  class="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-cyan-400 text-xs font-bold hover:bg-slate-800 hover:text-white transition flex items-center gap-2"
+                  aria-label="عرض كافة المقالات"
+                >
+                  كافة المقالات <i class="fa-solid fa-arrow-left"></i>
+                </button>
+              </div>
             </div>
             <div
               id="latestArticlesList"
