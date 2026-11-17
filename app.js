@@ -49,6 +49,7 @@ const articlesRef = ref(db, 'articles');
 const recentArticlesQuery = query(articlesRef, orderByKey(), limitToLast(3));
 let allArticlesData = {};
 let fullArticlesListenerAttached = false;
+let recentArticlesListenerAttached = false;
 
 // إعدادات API Ninjas (أدخل مفتاحك هنا لاحقاً)
 const NINJA_API_KEY = 'inmE8YUxP8omD7Ln9aA4xv1JaL3EVB47MJ3yQKyi';
@@ -1222,7 +1223,21 @@ function renderArticles(data, { renderFullList = false, notifyNewArticles = fals
     }
 }
 
-// حمّل المحتوى الكامل فقط عند فتح صفحة المقالات؛ الصفحة الرئيسية تتابع آخر ثلاثة مقالات.
+function loadRecentArticles() {
+    if (recentArticlesListenerAttached) return;
+    recentArticlesListenerAttached = true;
+    onValue(
+        recentArticlesQuery,
+        snapshot => renderArticles(snapshot.val(), { notifyNewArticles: true }),
+        error => {
+            recentArticlesListenerAttached = false;
+            console.error('تعذر تحميل أحدث المقالات:', error);
+            showToast('تعذر تحميل أحدث المقالات الآن.');
+        }
+    );
+}
+
+// حمّل المحتوى الكامل عند فتح صفحة المقالات، وآخر ثلاثة مقالات عند الاقتراب من قسمها.
 function loadAllArticles() {
     if (fullArticlesListenerAttached) return;
     fullArticlesListenerAttached = true;
@@ -1237,14 +1252,21 @@ function loadAllArticles() {
     );
 }
 
-onValue(
-    recentArticlesQuery,
-    snapshot => renderArticles(snapshot.val(), { notifyNewArticles: true }),
-    error => {
-        console.error('تعذر تحميل أحدث المقالات:', error);
-        showToast('تعذر تحميل أحدث المقالات الآن.');
+function observeLatestArticles() {
+    const latestArticlesHome = document.getElementById('latestArticlesHome');
+    if (!latestArticlesHome || !('IntersectionObserver' in window)) {
+        window.addEventListener('load', loadRecentArticles, { once: true });
+        return;
     }
-);
+
+    const observer = new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting)) {
+            observer.disconnect();
+            loadRecentArticles();
+        }
+    }, { rootMargin: '800px 0px' });
+    observer.observe(latestArticlesHome);
+}
 
 function calculateConversion() {
     // استخدام العناصر المخزنة في domElements لتحسين الأداء
@@ -1809,6 +1831,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 3. تحديث واجهة المستخدم والحسابات
         updateUI();
         handleScrollToTopBottom();
+        observeLatestArticles();
 
         // إضافة تأثير Parallax بسيط عند تحريك الماوس
         document.addEventListener('mousemove', (e) => {
@@ -1827,6 +1850,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- أحداث مركز الإشعارات ---
     domElements.notificationsBell?.addEventListener('click', (e) => {
         e.stopPropagation();
+        loadRecentArticles();
         domElements.notificationsDropdown?.classList.toggle('hidden');
         domElements.bellDot?.classList.add('hidden'); // إخفاء النقطة عند فتح القائمة
     });

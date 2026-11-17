@@ -25,7 +25,7 @@ try {
     console.error("⚠️ Failed to initialize Firebase Messaging in SW:", err);
 }
 
-const CACHE_NAME = 'gold-hub-v11';
+const CACHE_NAME = 'gold-hub-v12';
 const ASSETS = [
     'index.html',
     'manifest.json',
