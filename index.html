@@ -646,7 +646,7 @@
 </nav>
 
         <!-- مساحة إعلانية في الشريط الجانبي -->
-        <div class="mt-8 sidebar-text">
+        <div class="mt-8 sidebar-text" hidden>
           <div
             class="glass-panel rounded-xl p-2 border-dashed border-cyan-500/30 text-center"
           >
@@ -807,9 +807,9 @@
             <i class="fa-brands fa-github text-lg social-icon-github"></i>
           </a>
           <a
-            href="https://t.me/yourchannel"
-            href="https://t.me/YourHandle"
+            href="https://t.me/sahm_elzahab"
             target="_blank"
+            rel="noopener noreferrer"
             title="تيليجرام"
             class="transition-all transform hover:scale-110"
             aria-label="قناتنا على تيليجرام"
@@ -1234,6 +1234,7 @@
             <!-- إعلان علوي عريض للموبايل والديسكطوب (تم نقله للأسفل في الترتيب البصري) -->
             <div
               class="glass-panel rounded-2xl p-2 text-center border-dashed border-cyan-500/20 order-4"
+              hidden
             >
               <p class="text-[8px] text-slate-500 mb-1">إعلان</p>
               <div
@@ -1250,6 +1251,7 @@
               <!-- إعلان إضافي تحت أسعار العيارات -->
               <div
                 class="sm:col-span-2 md:col-span-3 xl:grid-cols-5 glass-panel rounded-xl p-2 text-center border-dashed border-cyan-500/10"
+                hidden
               >
                 <p class="text-[8px] text-slate-500">إعلان</p>
                 <div
@@ -1267,7 +1269,7 @@
             <!-- شبكة أسعار الفضة والبلاتين -->
             <div id="metalsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 order-3">
               <!-- سعر الفضة -->
-              <div class="glass-panel rounded-xl p-4 space-y-4">
+              <div id="silverPriceCard" class="glass-panel rounded-xl p-4 space-y-4" hidden>
                 <div class="flex justify-between items-center">
                   <div>
                     <p class="text-xs text-slate-400">الفضة (أوقية)</p>
@@ -1324,7 +1326,9 @@
               </div>
               <!-- سعر البلاتين -->
               <div
+                id="platinumPriceCard"
                 class="glass-panel rounded-xl p-4 flex justify-between items-center"
+                hidden
               >
                 <div>
                   <p class="text-xs text-slate-400">البلاتين (أوقية)</p>
@@ -1345,7 +1349,9 @@
 
               <!-- سعر النحاس -->
               <div
+                id="copperPriceCard"
                 class="glass-panel rounded-xl p-4 flex justify-between items-center"
+                hidden
               >
                 <div>
                   <p class="text-xs text-slate-400">النحاس (رطل)</p>
@@ -1358,7 +1364,9 @@
 
               <!-- حديد عز -->
               <div
+                id="ironEzzPriceCard"
                 class="glass-panel rounded-xl p-4 flex justify-between items-center"
+                hidden
               >
                 <div>
                   <div class="flex items-center gap-2">
@@ -1391,7 +1399,9 @@
 
               <!-- حديد المصريين -->
               <div
+                id="ironEgyptiansPriceCard"
                 class="glass-panel rounded-xl p-4 flex justify-between items-center"
+                hidden
               >
                 <div>
                   <div class="flex items-center gap-2">
@@ -1427,7 +1437,9 @@
 
               <!-- حديد الجارحي -->
               <div
+                id="ironGarhyPriceCard"
                 class="glass-panel rounded-xl p-4 flex justify-between items-center"
+                hidden
               >
                 <div>
                   <div class="flex items-center gap-2">
@@ -1461,6 +1473,7 @@
               <!-- إعلان إضافي تحت أسعار المعادن (ممتد على عرض الشبكة) -->
               <div
                 class="sm:col-span-2 glass-panel rounded-xl p-2 text-center border-dashed border-cyan-500/10"
+                hidden
               >
                 <p class="text-[8px] text-slate-500">إعلان</p>
                 <div
@@ -1707,7 +1720,7 @@
               >
                 <article class="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden hover:border-cyan-500/50 transition-all">
                   <div class="relative overflow-hidden h-48">
-                    <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=900&q=80" alt="أسعار الذهب اليوم في مصر" class="w-full h-full object-cover" width="600" height="300" loading="lazy" />
+                    <img src="https://images.unsplash.com/photo-1602173574767-37ac01994b2a?auto=format&fit=crop&w=900&q=80" alt="مشغولات ذهبية يتابع المستثمرون أسعارها" class="w-full h-full object-cover" width="600" height="300" loading="lazy" />
                   </div>
                   <div class="p-6">
                     <h4 class="text-xl font-bold mb-2 text-slate-100">أسعار الذهب اليوم في مصر: ما الذي يهم المستثمر؟</h4>
@@ -1716,7 +1729,7 @@
                 </article>
                 <article class="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden hover:border-cyan-500/50 transition-all">
                   <div class="relative overflow-hidden h-48">
-                    <img src="https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=900&q=80" alt="مقارنة أسعار الفضة والبلاتين" class="w-full h-full object-cover" width="600" height="300" loading="lazy" />
+                    <img src="https://images.unsplash.com/photo-1610375461246-83df859d849d?auto=format&fit=crop&w=900&q=80" alt="سبائك من المعادن الثمينة للمقارنة الاستثمارية" class="w-full h-full object-cover" width="600" height="300" loading="lazy" />
                   </div>
                   <div class="p-6">
                     <h4 class="text-xl font-bold mb-2 text-slate-100">مقارنة الذهب والفضة والبلاتين: أي المعدن الأنسب للاستثمار؟</h4>
@@ -1725,7 +1738,7 @@
                 </article>
                 <article class="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden hover:border-cyan-500/50 transition-all">
                   <div class="relative overflow-hidden h-48">
-                    <img src="https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=900&q=80" alt="دليل محول العملات" class="w-full h-full object-cover" width="600" height="300" loading="lazy" />
+                    <img src="https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=900&q=80" alt="أوراق نقدية لعملات مختلفة لمتابعة أسعار الصرف" class="w-full h-full object-cover" width="600" height="300" loading="lazy" />
                   </div>
                   <div class="p-6">
                     <h4 class="text-xl font-bold mb-2 text-slate-100">دليل سريع لاستخدام محول العملات في متابعة أسعار الدولار أو الجنيه</h4>
@@ -1869,6 +1882,28 @@
                   <div class="p-6">
                     <h4 class="text-xl font-bold mb-2 text-slate-100">اتجاهات سوق الذهب: كيف تكتشف التحول قبل أن يحدث؟</h4>
                     <p class="text-slate-400 text-sm">مؤشرات السوق وكيف تفسر تحركات الذهب قبل أن تتسارع في الاتجاه الجديد.</p>
+                  </div>
+                </article>
+              </a>
+              <a href="articles/dollar-egp-gold-relationship.html" class="block bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden hover:border-cyan-500/50 transition-all">
+                <article>
+                  <div class="relative overflow-hidden h-48">
+                    <img src="https://images.unsplash.com/photo-1620714223084-8fcacc6dfd8d?auto=format&fit=crop&w=900&q=80" alt="العلاقة بين الدولار والجنيه والذهب" class="w-full h-full object-cover" width="600" height="300" loading="lazy" />
+                  </div>
+                  <div class="p-6">
+                    <h4 class="text-xl font-bold mb-2 text-slate-100">العلاقة بين الدولار والجنيه والذهب في مصر</h4>
+                    <p class="text-slate-400 text-sm">كيف تؤثر تغيرات العملات على قراءة أسعار الذهب في السوق المحلي؟</p>
+                  </div>
+                </article>
+              </a>
+              <a href="articles/gold-vs-real-estate.html" class="block bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden hover:border-cyan-500/50 transition-all">
+                <article>
+                  <div class="relative overflow-hidden h-48">
+                    <img src="https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=900&q=80" alt="مقارنة الذهب والعقارات" class="w-full h-full object-cover" width="600" height="300" loading="lazy" />
+                  </div>
+                  <div class="p-6">
+                    <h4 class="text-xl font-bold mb-2 text-slate-100">الذهب أم العقارات؟ مقارنة بين أدوات حفظ القيمة</h4>
+                    <p class="text-slate-400 text-sm">قارن السيولة والتكلفة والأفق الاستثماري قبل اختيار وسيلة الادخار.</p>
                   </div>
                 </article>
               </a>
@@ -2100,56 +2135,140 @@
                   <i class="fa-solid fa-shield-halved text-cyan-400"></i> سياسة
                   الخصوصية
                 </h3>
-                <p class="text-slate-400 mt-2 text-sm">آخر تحديث: مايو 2024</p>
+                <p class="text-slate-400 mt-2 text-sm">آخر تحديث: 17 نوفمبر 2026</p>
               </div>
               <div class="space-y-6 text-slate-300 text-sm leading-relaxed">
                 <section class="space-y-3">
                   <h4 class="text-white font-bold text-base">
-                    1. جمع المعلومات
+                    1. البيانات والتخزين في المتصفح
                   </h4>
                   <p>
-                    نحن لا نجمع أي بيانات شخصية مباشرة، ولكن يتم استخدام ملفات
-                    تعريف الارتباط (Cookies) لتحسين تجربة المستخدم وتحليل حركة
-                    المرور.
+                    يحفظ الموقع محليًا بعض البيانات اللازمة لوظائفه، مثل نسخة من
+                    الأسعار وأسعار الصرف واللغة والمفضّلات وإعداد تنبيه السعر.
+                    لا ينشئ الموقع حسابًا للمستخدم. يمكنك حذف هذه البيانات من
+                    إعدادات بيانات الموقع في متصفحك، وقد يؤدي ذلك إلى إعادة ضبط
+                    تفضيلاتك.
                   </p>
                 </section>
                 <section class="space-y-3">
                   <h4 class="text-white font-bold text-base">
-                    2. جوجل أدسنس (Google AdSense)
+                    2. الموقع الجغرافي ومكاتب الصرافة
                   </h4>
                   <p>
-                    يستخدم طرف ثالث (Google) ملفات تعريف الارتباط لعرض الإعلانات
-                    بناءً على زياراتك السابقة لموقعنا. استخدام جوجل لملف تعريف
-                    الارتباط DART يتيح لها عرض الإعلانات بناءً على زياراتك
-                    لمواقع الإنترنت المختلفة.
+                    عند فتح خريطة مكاتب الصرافة، يطلب المتصفح إذنك للوصول إلى
+                    موقعك. إذا وافقت، تُستخدم الإحداثيات مؤقتًا ويجري إرسالها إلى
+                    خدمة Overpass التابعة لـ OpenStreetMap للعثور على المكاتب
+                    القريبة. لا يحفظ الموقع الإحداثيات في المتصفح أو Firebase.
+                    يمكنك رفض الإذن أو سحبه من إعدادات المتصفح؛ عندها تعرض
+                    الخريطة موقعًا عامًا في مصر.
                   </p>
                 </section>
                 <section class="space-y-3">
                   <h4 class="text-white font-bold text-base">
-                    3. ملفات تعريف الارتباط
+                    3. Firebase والأسعار والتحليلات
                   </h4>
                   <p>
-                    يمكنك اختيار تعطيل ملفات تعريف الارتباط من خلال إعدادات
-                    متصفحك الخاص، أو من خلال زيارة سياسة الخصوصية الخاصة
-                    بإعلانات جوجل وشبكة المحتوى.
+                    يستخدم الموقع Firebase Realtime Database لقراءة وتحديث
+                    الأسعار وأسعار الصرف والسجل التاريخي والمقالات. كما يهيّئ
+                    Firebase Analytics لقياس استخدام الخدمة. وقد تعالج Google
+                    بيانات تقنية أو بيانات استخدام وفقًا
+                    <a class="text-cyan-400 hover:underline" href="https://policies.google.com/privacy">لسياسة الخصوصية</a>.
                   </p>
                 </section>
                 <section class="space-y-3">
                   <h4 class="text-white font-bold text-base">
-                    4. البيانات التقنية
+                    4. إشعارات المتصفح وتنبيهات الأسعار
                   </h4>
                   <p>
-                    نستخدم خدمات Firebase لإدارة أسعار الذهب والعملات لحظياً،
-                    ولا يتم مشاركة أي بيانات تخص هوية المستخدم مع أطراف ثالثة
-                    لأغراض تجارية.
+                    قد يطلب الموقع إذن المتصفح لإشعارات تغيّر الأسعار أو بلوغ
+                    السعر الذي حددته. يُحفظ حد السعر في متصفحك ويُزال بعد إطلاق
+                    التنبيه. لإيقاف الإشعارات، امنع الإذن أو اسحبه من إعدادات
+                    الموقع في المتصفح. ولإلغاء حد لم يتحقق بعد، احذف بيانات
+                    الموقع من المتصفح. قد لا تكون إشعارات الخلفية متاحة حاليًا.
                   </p>
                 </section>
+                <section class="space-y-3">
+                  <h4 class="text-white font-bold text-base">
+                    5. Google AdSense وملفات تعريف الارتباط
+                  </h4>
+                  <p>
+                    يعرض الموقع إعلانات Google AdSense. قد تستخدم Google أو
+                    شركاؤها ملفات تعريف الارتباط وتقنيات مشابهة لتقديم الإعلانات
+                    وقياسها وتخصيصها وفقًا لإعداداتك. يمكنك إدارة التخصيص من
+                    <a class="text-cyan-400 hover:underline" href="https://myadcenter.google.com/">مركز إعلانات Google</a>
+                    أو التحكم بملفات تعريف الارتباط من إعدادات المتصفح. ويستخدم
+                    الموقع أيضًا Local Storage للتفضيلات، وهي تقنية منفصلة عن
+                    ملفات تعريف الارتباط.
+                  </p>
+                </section>
+                <section class="space-y-3">
+                  <h4 class="text-white font-bold text-base">
+                    6. طلب حذف البيانات والتواصل
+                  </h4>
+                  <p>
+                    لحذف البيانات المحفوظة محليًا، امسح بيانات الموقع من
+                    إعدادات المتصفح. لطلب مراجعة أو حذف بيانات تعتقد أنها مرتبطة
+                    بك لدى الموقع، تواصل معنا عبر
+                    <a class="text-cyan-400 hover:underline" href="contact.html">صفحة اتصل بنا</a>
+                    أو البريد
+                    <a class="text-cyan-400 hover:underline" href="mailto:as9825878@gmail.com">as9825878@gmail.com</a>.
+                  </p>
+                </section>
+                <div lang="en" dir="ltr" class="space-y-3 border-t border-slate-800 pt-6 text-left">
+                  <h4 class="text-white font-bold text-base">Privacy Policy — English</h4>
+                  <p>
+                    <strong>Last updated: November 17, 2026.</strong> The site
+                    stores some functional data in your browser, including
+                    cached prices and rates, language, favorites, and your price
+                    alert. Clear this site's browser data to delete locally
+                    stored information.
+                  </p>
+                  <p>
+                    When you open the exchange-office map, your browser asks
+                    for location permission. If granted, your coordinates are
+                    used temporarily and sent to OpenStreetMap's Overpass
+                    service to find nearby offices. The site does not save
+                    coordinates in browser storage or Firebase. You can deny or
+                    revoke permission in browser settings; a general location
+                    in Egypt is shown instead.
+                  </p>
+                  <p>
+                    Firebase Realtime Database is used to read and update
+                    prices, exchange rates, price history, and articles.
+                    Firebase Analytics is also initialized and may process
+                    technical or usage data under
+                    <a class="text-cyan-400 hover:underline" href="https://policies.google.com/privacy">Google's Privacy Policy</a>.
+                    The site displays Google AdSense ads; Google or its
+                    partners may use cookies or similar technologies to serve,
+                    measure, or personalize ads. Manage ad personalization in
+                    <a class="text-cyan-400 hover:underline" href="https://myadcenter.google.com/">Google My Ad Center</a>,
+                    or manage cookies in your browser settings. Local storage
+                    is separate from cookies.
+                  </p>
+                  <p>
+                    The site may ask permission for browser notifications about
+                    price changes or a reached price threshold. The threshold
+                    is stored in your browser and removed after it fires.
+                    Revoke notification permission in browser site settings to
+                    stop notifications; clear this site's data to cancel a
+                    threshold that has not fired. Background notifications may
+                    not currently be available.
+                  </p>
+                  <p>
+                    To request a review or deletion of data you believe the
+                    site holds about you, contact us through the
+                    <a class="text-cyan-400 hover:underline" href="contact.html">Contact page</a>
+                    or email
+                    <a class="text-cyan-400 hover:underline" href="mailto:as9825878@gmail.com">as9825878@gmail.com</a>.
+                  </p>
+                </div>
                 <div
                   class="p-4 bg-cyan-500/5 rounded-2xl border border-cyan-500/10"
                 >
                   <p class="text-xs">
-                    باستخدامك لموقعنا، فإنك توافق على سياسة الخصوصية الخاصة بنا
-                    وشروط الاستخدام.
+                    لمزيد من التفاصيل، راجع
+                    <a class="text-cyan-400 hover:underline" href="privacy.html">سياسة الخصوصية الكاملة</a>
+                    و<a class="text-cyan-400 hover:underline" href="terms.html">شروط الاستخدام</a>.
                   </p>
                 </div>
               </div>
@@ -2257,9 +2376,9 @@
               <i class="fa-brands fa-github text-xl social-icon-github"></i>
             </a>
             <a
-              href="https://t.me/goldhub"
-              href="https://t.me/YourHandle"
+              href="https://t.me/sahm_elzahab"
               target="_blank"
+              rel="noopener noreferrer"
               class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center transition-all shadow-lg"
               aria-label="قناتنا على تيليجرام"
             >

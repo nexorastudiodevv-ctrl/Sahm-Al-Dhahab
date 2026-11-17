@@ -6,7 +6,7 @@
     <title>سياسة الخصوصية | سهم الذهب</title>
     <meta
       name="description"
-      content="سياسة الخصوصية الخاصة بموقع سهم الذهب، بما في ذلك استخدام الكوكيز والإعلانات والبيانات التقنية."
+      content="سياسة خصوصية سهم الذهب: الموقع الجغرافي، Firebase، إشعارات المتصفح، الإعلانات وملفات تعريف الارتباط."
     />
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#090f1c" />
@@ -45,6 +45,9 @@
       a { color: var(--accent); }
       .muted { color: var(--muted); }
       .back { display: inline-block; margin-bottom: 20px; }
+      .language-copy { margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--border); }
+      .language-copy h2 { margin-top: 28px; }
+      .english { direction: ltr; text-align: left; }
     </style>
   </head>
   <body>
@@ -52,53 +55,163 @@
       <div class="card">
         <a class="back" href="/">← العودة إلى الصفحة الرئيسية</a>
         <h1>سياسة الخصوصية</h1>
-        <p class="muted">آخر تحديث: 4 أغسطس 2026</p>
+        <p class="muted">آخر تحديث: 17 نوفمبر 2026</p>
         <p>
-          تهدف هذه السياسة إلى توضيح كيفية استخدام موقع سهم الذهب للمعلومات التقنية
-          والبيانات التي قد يتم جمعها أثناء زيارة المستخدمين للموقع، بما في ذلك
-          الأغراض التحليلية والتجريبية وتحسين تجربة الاستخدام.
+          توضح هذه السياسة المعلومات التي تعالجها صفحة سهم الذهب عند استخدام الموقع
+          وخصائصه، بما في ذلك البيانات التقنية والتفضيلات الموضحة أدناه.
         </p>
 
-        <h2>1. المعلومات التي نجمعها</h2>
+        <h2>1. البيانات والتخزين في المتصفح</h2>
         <p>
-          لا نجمع بيانات شخصية مباشرة من المستخدمين إلا عند استخدامهم نماذج الاتصال أو
-          التطبيقات التي قد تكون متاحة على الموقع. كما قد يتم جمع بيانات تقنية مثل
-          عنوان IP، نوع المتصفح، ومعلومات الجلسة لتحسين الأداء وتحليل الحركة.
+          يحفظ الموقع في مساحة التخزين المحلية للمتصفح (Local Storage) بعض البيانات
+          اللازمة للوظائف، مثل نسخة من الأسعار وأسعار الصرف، واللغة والمفضّلات،
+          وإعداد تنبيه السعر. هذه البيانات تبقى في متصفحك ولا تعني إنشاء حساب.
+          يمكنك حذفها من إعدادات بيانات الموقع في متصفحك؛ وقد يؤدي ذلك إلى إعادة
+          ضبط تفضيلاتك.
         </p>
 
-        <h2>2. ملفات تعريف الارتباط والكعكات</h2>
+        <h2>2. الموقع الجغرافي ومكاتب الصرافة</h2>
         <p>
-          يستخدم الموقع ملفات تعريف الارتباط لتحسين التجربة، حفظ الإعدادات، وتحليل
-          الأداء. قد تستخدم بعض الخدمات الخارجية مثل Google AdSense ملفات تعريف
-          الارتباط لعرض الإعلانات بناءً على نشاط المستخدم.
+          عند فتح خريطة مكاتب الصرافة، يطلب الموقع إذن المتصفح للوصول إلى موقعك
+          الجغرافي. إذا وافقت، يستخدم الموقع الإحداثيات مؤقتًا لعرض المكاتب القريبة
+          (ضمن نطاق البحث الظاهر في الخدمة)، ويرسلها إلى خدمة Overpass التابعة
+          لمشروع OpenStreetMap لإجراء البحث. لا يحفظ الموقع الإحداثيات في Local
+          Storage أو Firebase. ويمكنك رفض الإذن أو سحبه من إعدادات المتصفح؛ عندها
+          تعرض الخريطة موقعًا عامًا في مصر بدلًا من موقعك. قد تتلقى خدمات الخرائط
+          الخارجية طلبات تحميل الخريطة ومعلومات الاتصال المعتادة.
         </p>
 
-        <h2>3. استخدام Google AdSense</h2>
+        <h2>3. Firebase والأسعار والتحليلات</h2>
         <p>
-          قد يعرض الموقع إعلانات من Google AdSense. تستخدم Google ملفات تعريف
-          الارتباط والبيانات التقنية لتخصيص الإعلانات بناءً على زيارات المستخدم
-          لمواقع أخرى على الإنترنت، وفقًا لسياسة Google الخاصة بالإعلانات.
+          يستخدم الموقع Firebase Realtime Database لقراءة بيانات الأسعار وأسعار
+          الصرف والسجل التاريخي والمقالات وتحديثها. كما يهيّئ Firebase Analytics
+          لقياس استخدام الخدمة ومساعدتنا على فهم أدائها؛ وقد تعالج Google بيانات
+          تقنية أو استخدام وفقًا
+          <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">لسياسة خصوصية Google</a>
+          و<a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer">معلومات خصوصية Firebase</a>.
+          ويستخدم الموقع أيضًا واجهات خارجية أخرى لجلب بعض بيانات الأسعار.
         </p>
 
-        <h2>4. الخدمات الخارجية</h2>
+        <h2>4. إشعارات المتصفح وتنبيهات الأسعار</h2>
         <p>
-          قد يعتمد الموقع على خدمات خارجية مثل Firebase وOpenStreetMap ومكتبات CDN.
-          تخضع هذه الخدمات لسياسات الخصوصية الخاصة بها، ولا يتحكم سهم الذهب في كيفية
-          معالجة هذه الجهات للبيانات.
+          قد يطلب الموقع إذن المتصفح لإظهار إشعارات عن تغيّر الأسعار أو عند بلوغ
+          السعر الحد الذي حددته. يُحفظ حد السعر في متصفحك، ويُزال بعد إطلاق التنبيه.
+          لإيقاف الإشعارات، امنع إذن الإشعارات أو اسحبه من إعدادات الموقع في
+          المتصفح. ولإلغاء حد سعر لم يتحقق بعد، احذف بيانات الموقع من المتصفح؛
+          وهذا يحذف أيضًا التفضيلات المحلية الأخرى. تعتمد الإشعارات التي تعمل
+          خارج الصفحة المفتوحة على اكتمال إعداد خدمة الإشعارات في الموقع، وقد لا
+          تكون متاحة حاليًا.
         </p>
 
-        <h2>5. حقوق المستخدم</h2>
+        <h2>5. Google AdSense وملفات تعريف الارتباط</h2>
         <p>
-          يمكنك تعطيل الكوكيز من إعدادات المتصفح، أو إدارة الإعلانات من إعدادات
-          الإعلانات الخاصة بجهازك أو متصفحك. قد يؤثر ذلك على بعض وظائف الموقع.
+          يعرض الموقع إعلانات Google AdSense. قد تستخدم Google أو شركاؤها ملفات
+          تعريف الارتباط وتقنيات مشابهة لتقديم الإعلانات وقياسها وتخصيصها وفقًا
+          لإعداداتك ونشاطك، بحسب إعدادات الإعلانات المتاحة في منطقتك. يمكنك إدارة
+          تخصيص الإعلانات من
+          <a href="https://myadcenter.google.com/" target="_blank" rel="noopener noreferrer">مركز إعلانات Google</a>
+          أو التحكم بملفات تعريف الارتباط من إعدادات المتصفح. وقد يؤثر حظرها في
+          بعض وظائف الإعلانات. كما يستخدم الموقع Local Storage للتفضيلات الموضحة
+          أعلاه، وهي تقنية منفصلة عن ملفات تعريف الارتباط.
         </p>
 
-        <h2>6. الاتصال بنا</h2>
+        <h2>6. طلب حذف البيانات والتواصل</h2>
         <p>
-          إذا كانت لديك أي أسئلة بخصوص هذه السياسة أو أي استفسار يتعلق بالموقع، يمكنك
-          التواصل معنا من خلال صفحة <a href="contact.html">اتصل بنا</a>.
-          كما يمكنك مراجعة <a href="terms.html">شروط الاستخدام</a> لمعرفة القواعد العامة
-          لاستخدام الموقع.
+          لحذف البيانات المحفوظة محليًا، يمكنك مسح بيانات الموقع من إعدادات
+          المتصفح. ولطلب مراجعة أو حذف أي بيانات تعتقد أنها مرتبطة بك لدى الموقع،
+          أرسل طلبك عبر
+          <a href="contact.html">صفحة اتصل بنا</a>
+          أو مباشرة إلى
+          <a href="mailto:as9825878@gmail.com">as9825878@gmail.com</a>.
+          يرجى توضيح البيانات المقصودة حتى نتمكن من مراجعة الطلب.
+        </p>
+
+        <div class="language-copy english" lang="en" dir="ltr">
+          <h1>Privacy Policy</h1>
+          <p class="muted">Last updated: November 17, 2026</p>
+          <p>
+            This policy explains what information Sahm Al-Dhahab processes
+            when you use the website and its features, including the technical
+            data and preferences described below.
+          </p>
+
+          <h2>1. Browser data and storage</h2>
+          <p>
+            The site uses your browser's local storage for data needed by its
+            features, such as cached prices and exchange rates, language and
+            favorites, and your price-alert setting. This data stays in your
+            browser. You can delete it in your browser's site-data settings;
+            doing so may reset your preferences.
+          </p>
+
+          <h2>2. Location and nearby exchange offices</h2>
+          <p>
+            When you open the exchange-office map, your browser asks for
+            permission to access your location. If you grant permission, the
+            site temporarily uses your coordinates to show nearby offices
+            (within the service's search radius) and sends them to the
+            OpenStreetMap project's Overpass service to perform the search. The
+            site does not save these coordinates in local storage or Firebase.
+            You can deny or revoke permission in your browser settings; the map
+            then shows a general location in Egypt instead. External map
+            services may receive map-loading requests and related connection
+            information.
+          </p>
+
+          <h2>3. Firebase, prices, and analytics</h2>
+          <p>
+            The site uses Firebase Realtime Database to read and update prices,
+            exchange rates, price history, and articles. It also initializes
+            Firebase Analytics to measure service usage and understand
+            performance. Google may process technical or usage data under its
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+            and
+            <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer">Firebase privacy information</a>.
+            The site also uses other external APIs for some price data.
+          </p>
+
+          <h2>4. Browser notifications and price alerts</h2>
+          <p>
+            The site may ask your browser for permission to show notifications
+            about price changes or when a price reaches a threshold you set.
+            Your price threshold is saved in your browser and removed after the
+            alert fires. To stop notifications, block or revoke notification
+            permission in your browser's site settings. To cancel a threshold
+            that has not yet been reached, clear this site's data in your
+            browser; this also removes other locally saved preferences.
+            Notifications while the page is closed depend on the site's
+            notification service being fully configured and may not currently
+            be available.
+          </p>
+
+          <h2>5. Google AdSense and cookies</h2>
+          <p>
+            The site displays Google AdSense ads. Google or its partners may use
+            cookies and similar technologies to serve, measure, and personalize
+            ads according to your settings and activity, subject to the
+            advertising settings available in your region. You can manage ad
+            personalization in
+            <a href="https://myadcenter.google.com/" target="_blank" rel="noopener noreferrer">Google My Ad Center</a>
+            or manage cookies in your browser settings. Blocking them may affect
+            some advertising features. The site also uses local storage for the
+            preferences described above; this is separate from cookies.
+          </p>
+
+          <h2>6. Data deletion requests and contact</h2>
+          <p>
+            To delete data saved locally, clear this site's data in your
+            browser settings. To request a review or deletion of any data you
+            believe the site holds about you, use the
+            <a href="contact.html">Contact page</a>
+            or email
+            <a href="mailto:as9825878@gmail.com">as9825878@gmail.com</a>.
+            Please identify the data concerned so we can review your request.
+          </p>
+        </div>
+
+        <p>
+          يمكنك مراجعة <a href="terms.html">شروط الاستخدام</a> لمزيد من المعلومات
+          حول استخدام الموقع.
         </p>
       </div>
     </div>

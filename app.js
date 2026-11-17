@@ -96,6 +96,21 @@ about: "من نحن", contact: "اتصل بنا",
     }
 };
 
+const currentUrl = new URL(window.location.href);
+if (currentUrl.searchParams.has('lang')) {
+    const requestedLang = currentUrl.searchParams.get('lang');
+    if (requestedLang === 'ar' || requestedLang === 'en') {
+        localStorage.setItem('site_lang', requestedLang);
+    }
+
+    currentUrl.searchParams.delete('lang');
+    window.history.replaceState(
+        window.history.state,
+        '',
+        `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`
+    );
+}
+
 let currentLang = localStorage.getItem('site_lang') || 'ar';
 
 // كاش لعناصر DOM
@@ -399,19 +414,30 @@ let exchangeRates = JSON.parse(localStorage.getItem('last_rates')) || {
     "CNY": 7.24, "TRY": 32.50
 };
 
-let goldPrice = parseFloat(localStorage.getItem('last_gold_price')) || 2350.75;
-let silverPrice = parseFloat(localStorage.getItem('last_silver_price')) || 28.00;
-let platinumPrice = parseFloat(localStorage.getItem('last_platinum_price')) || 980.00;
-let copperPrice = parseFloat(localStorage.getItem('last_copper_price')) || 4.50;
-let previousCopperPrice = copperPrice;
-let ironEzzPrice = parseFloat(localStorage.getItem('last_iron_ezz_price')) || 41000.00;
-let ironEgyptiansPrice = parseFloat(localStorage.getItem('last_iron_egyptians_price')) || 40500.00;
-let ironGarhyPrice = parseFloat(localStorage.getItem('last_iron_garhy_price')) || 40200.00;
+const readStoredMarketPrice = (key) => {
+    const price = Number(localStorage.getItem(key));
+    return Number.isFinite(price) && price > 0 ? price : 0;
+};
+const readPriceFromStoredRate = (currencyCode) => {
+    const rate = Number(exchangeRates[currencyCode]);
+    return Number.isFinite(rate) && rate > 0 ? 1 / rate : 0;
+};
 
-// تهيئة أولية لأسعار المعادن في كائن التحويل لضمان عمل المحول فوراً
+let goldPrice = parseFloat(localStorage.getItem('last_gold_price')) || 2350.75;
+let silverPrice = readStoredMarketPrice('last_silver_price') || readPriceFromStoredRate('XAG');
+let platinumPrice = readStoredMarketPrice('last_platinum_price') || readPriceFromStoredRate('XPT');
+let copperPrice = readStoredMarketPrice('last_copper_price');
+let previousCopperPrice = copperPrice;
+let ironEzzPrice = 0;
+let ironEgyptiansPrice = 0;
+let ironGarhyPrice = 0;
+
+// أضف أسعار المعادن إلى المحول فقط عند وجود سعر محفوظ صالح.
 exchangeRates["XAU"] = 1 / goldPrice;
-exchangeRates["XAG"] = 1 / silverPrice;
-exchangeRates["XPT"] = 1 / platinumPrice;
+if (silverPrice > 0) exchangeRates["XAG"] = 1 / silverPrice;
+else delete exchangeRates["XAG"];
+if (platinumPrice > 0) exchangeRates["XPT"] = 1 / platinumPrice;
+else delete exchangeRates["XPT"];
 
 // تقارن الطوابع الزمنية الصادرة عن المصدرين، لا وقت الطلب المحلي لكل جهاز.
 let manualLastUpdate = 0;
@@ -780,17 +806,17 @@ async function fetchApiPrices() {
                                 addApiLog("⚠️ تعذر تحديد وقت تحديث سعر الذهب من API Ninjas.");
                             }
                         } else if (metal.key === 'SILVER') {
-                            previousSilverPrice = silverPrice;
+                            previousSilverPrice = silverPrice > 0 ? silverPrice : price;
                             silverPrice = price;
                             exchangeRates["XAG"] = 1 / silverPrice;
                             localStorage.setItem('last_silver_price', silverPrice);
                         } else if (metal.key === 'PLATINUM') {
-                            previousPlatinumPrice = platinumPrice;
+                            previousPlatinumPrice = platinumPrice > 0 ? platinumPrice : price;
                             platinumPrice = price;
                             exchangeRates["XPT"] = 1 / platinumPrice;
                             localStorage.setItem('last_platinum_price', platinumPrice);
                         } else if (metal.key === 'COPPER') {
-                            previousCopperPrice = copperPrice;
+                            previousCopperPrice = copperPrice > 0 ? copperPrice : price;
                             copperPrice = price;
                             localStorage.setItem('last_copper_price', copperPrice);
                         }
@@ -830,9 +856,11 @@ async function fetchApiPrices() {
                 // التأكد من وجود الدولار كقاعدة
                 exchangeRates["USD"] = 1;
 
-                if (currData.rates.XPT) {
-                    previousPlatinumPrice = platinumPrice;
-                    platinumPrice = 1 / currData.rates.XPT;
+                const platinumRate = Number(currData.rates.XPT);
+                if (Number.isFinite(platinumRate) && platinumRate > 0) {
+                    const price = 1 / platinumRate;
+                    previousPlatinumPrice = platinumPrice > 0 ? platinumPrice : price;
+                    platinumPrice = price;
                     localStorage.setItem('last_platinum_price', platinumPrice);
                 }
                 // استخدم سعر العملات احتياطياً فقط إذا كان تحديثه أحدث من API Ninjas.
@@ -849,10 +877,12 @@ async function fetchApiPrices() {
                     apiGoldUpdatedAt = currencyUpdatedAt;
                 }
 
+                const silverRate = Number(currData.rates.XAG);
                 if (!processedResults.SILVER || processedResults.SILVER.status === 'rejected' || !processedResults.SILVER.value.ok) {
-                    if (currData.rates.XAG) {
-                        previousSilverPrice = silverPrice;
-                        silverPrice = 1 / currData.rates.XAG;
+                    if (Number.isFinite(silverRate) && silverRate > 0) {
+                        const price = 1 / silverRate;
+                        previousSilverPrice = silverPrice > 0 ? silverPrice : price;
+                        silverPrice = price;
                         exchangeRates["XAG"] = 1 / silverPrice;
                         localStorage.setItem('last_silver_price', silverPrice);
                         addApiLog("✅ تم تحديث سعر الفضة من OpenExchangeRates (كخيار احتياطي).");
@@ -872,13 +902,20 @@ async function fetchApiPrices() {
         if (ironRes && ironRes.status === 'fulfilled' && ironRes.value.ok) {
             const ironData = await ironRes.value.json();
             const record = ironData?.record || ironData;
-            if (record && record.ezz) {
-                previousIronEzzPrice = ironEzzPrice;
-                ironEzzPrice = record.ezz;
-                previousIronEgyptiansPrice = ironEgyptiansPrice;
-                ironEgyptiansPrice = record.egyptians;
-                previousIronGarhyPrice = ironGarhyPrice;
-                ironGarhyPrice = record.garhy;
+            const ironEzz = Number(record?.ezz);
+            const ironEgyptians = Number(record?.egyptians);
+            const ironGarhy = Number(record?.garhy);
+            if (Number.isFinite(ironEzz) && ironEzz > 0) {
+                previousIronEzzPrice = ironEzzPrice > 0 ? ironEzzPrice : ironEzz;
+                ironEzzPrice = ironEzz;
+            }
+            if (Number.isFinite(ironEgyptians) && ironEgyptians > 0) {
+                previousIronEgyptiansPrice = ironEgyptiansPrice > 0 ? ironEgyptiansPrice : ironEgyptians;
+                ironEgyptiansPrice = ironEgyptians;
+            }
+            if (Number.isFinite(ironGarhy) && ironGarhy > 0) {
+                previousIronGarhyPrice = ironGarhyPrice > 0 ? ironGarhyPrice : ironGarhy;
+                ironGarhyPrice = ironGarhy;
             }
         } else if (ironRes && ironRes.status === 'rejected') {
             // Error already logged in the catch block of the fetch call
@@ -1012,8 +1049,8 @@ function updateChart(newPrice) {
 // يعرض السعر الأحدث حسب التوقيت بين الـ API واليدوي
 onValue(pricesRef, (snapshot) => {
     const data = snapshot.val();
-    if (!data || !data.gold) {
-        // لا توجد بيانات يدوية أو تم حذفها -> العودة للوضع التلقائي
+    if (!data) {
+        // لا توجد بيانات Firebase -> العودة للوضع التلقائي
         manualLastUpdate = 0;
         if (latestApiGoldPrice !== null) {
             applyApiGoldPrice(latestApiGoldPrice);
@@ -1024,16 +1061,20 @@ onValue(pricesRef, (snapshot) => {
         return;
     }
 
-    const serverTime = Number(data.lastUpdated) || 0;
+    const firebaseGoldPrice = Number(data.gold);
+    const hasFirebaseGold = Number.isFinite(firebaseGoldPrice) && firebaseGoldPrice > 0;
+    if (!hasFirebaseGold && latestApiGoldPrice === null) scheduleApiPriceFetch();
+
+    const serverTime = hasFirebaseGold ? (Number(data.lastUpdated) || 0) : 0;
     manualLastUpdate = serverTime;
     const apiPriceIsNewer = latestApiGoldPrice !== null
-        && isApiPriceNewer(apiLastUpdate, serverTime);
+        && (!hasFirebaseGold || isApiPriceNewer(apiLastUpdate, serverTime));
 
     previousGoldPrice = goldPrice;
     previousCaratPrices = { ...caratPrices };
 
     // حدّث الذهب من المصدر الأحدث، مع تطبيق بقية قيم Firebase كالمعتاد.
-    goldPrice = apiPriceIsNewer ? latestApiGoldPrice : (Number(data.gold) || goldPrice);
+    goldPrice = apiPriceIsNewer ? latestApiGoldPrice : (hasFirebaseGold ? firebaseGoldPrice : goldPrice);
     exchangeRates = { ...(data.rates || exchangeRates) };
     exchangeRates["USD"] = 1;
     exchangeRates["XAU"] = 1 / goldPrice;
@@ -1055,12 +1096,39 @@ onValue(pricesRef, (snapshot) => {
     };
 
     // تحديث سعر الفضة من Firebase فقط إذا كان موجوداً، وإلا فسيتم الاحتفاظ بآخر قيمة من API أو القيمة الافتراضية
-    if (data.silver !== undefined) { previousSilverPrice = silverPrice; silverPrice = data.silver; }
-    if (data.copper !== undefined) { previousCopperPrice = copperPrice; copperPrice = data.copper; localStorage.setItem('last_copper_price', copperPrice); }
-    if (data.platinum !== undefined) { previousPlatinumPrice = platinumPrice; platinumPrice = data.platinum; localStorage.setItem('last_platinum_price', platinumPrice); }
-    if (data.ironEzz) { previousIronEzzPrice = ironEzzPrice; ironEzzPrice = data.ironEzz; }
-    if (data.ironEgyptians) { previousIronEgyptiansPrice = ironEgyptiansPrice; ironEgyptiansPrice = data.ironEgyptians; }
-    if (data.ironGarhy) { previousIronGarhyPrice = ironGarhyPrice; ironGarhyPrice = data.ironGarhy; }
+    const silverPriceFromFirebase = Number(data.silver);
+    if (Number.isFinite(silverPriceFromFirebase) && silverPriceFromFirebase > 0) {
+        previousSilverPrice = silverPrice > 0 ? silverPrice : silverPriceFromFirebase;
+        silverPrice = silverPriceFromFirebase;
+        localStorage.setItem('last_silver_price', silverPrice);
+    }
+    const copperPriceFromFirebase = Number(data.copper);
+    if (Number.isFinite(copperPriceFromFirebase) && copperPriceFromFirebase > 0) {
+        previousCopperPrice = copperPrice > 0 ? copperPrice : copperPriceFromFirebase;
+        copperPrice = copperPriceFromFirebase;
+        localStorage.setItem('last_copper_price', copperPrice);
+    }
+    const platinumPriceFromFirebase = Number(data.platinum);
+    if (Number.isFinite(platinumPriceFromFirebase) && platinumPriceFromFirebase > 0) {
+        previousPlatinumPrice = platinumPrice > 0 ? platinumPrice : platinumPriceFromFirebase;
+        platinumPrice = platinumPriceFromFirebase;
+        localStorage.setItem('last_platinum_price', platinumPrice);
+    }
+    const ironEzzFromFirebase = Number(data.ironEzz);
+    if (Number.isFinite(ironEzzFromFirebase) && ironEzzFromFirebase > 0) {
+        previousIronEzzPrice = ironEzzPrice > 0 ? ironEzzPrice : ironEzzFromFirebase;
+        ironEzzPrice = ironEzzFromFirebase;
+    }
+    const ironEgyptiansFromFirebase = Number(data.ironEgyptians);
+    if (Number.isFinite(ironEgyptiansFromFirebase) && ironEgyptiansFromFirebase > 0) {
+        previousIronEgyptiansPrice = ironEgyptiansPrice > 0 ? ironEgyptiansPrice : ironEgyptiansFromFirebase;
+        ironEgyptiansPrice = ironEgyptiansFromFirebase;
+    }
+    const ironGarhyFromFirebase = Number(data.ironGarhy);
+    if (Number.isFinite(ironGarhyFromFirebase) && ironGarhyFromFirebase > 0) {
+        previousIronGarhyPrice = ironGarhyPrice > 0 ? ironGarhyPrice : ironGarhyFromFirebase;
+        ironGarhyPrice = ironGarhyFromFirebase;
+    }
     if (data.makingCharges) makingCharges = data.makingCharges;
 
     localStorage.setItem('last_gold_price', goldPrice);
@@ -1210,6 +1278,22 @@ function calculateConversion() {
     if (domElements.conversionResult) domElements.conversionResult.textContent = `${formatted} ${toCurrency}`;
 }
 
+function updateMarketPriceCardVisibility() {
+    const cards = [
+        ['silverPriceCard', silverPrice],
+        ['platinumPriceCard', platinumPrice],
+        ['copperPriceCard', copperPrice],
+        ['ironEzzPriceCard', ironEzzPrice],
+        ['ironEgyptiansPriceCard', ironEgyptiansPrice],
+        ['ironGarhyPriceCard', ironGarhyPrice]
+    ];
+
+    cards.forEach(([id, price]) => {
+        const card = document.getElementById(id);
+        if (card) card.hidden = !Number.isFinite(price) || price <= 0;
+    });
+}
+
 function updateUI() {
     const previousGoldSnapshot = previousGoldPrice || goldPrice;
 
@@ -1292,6 +1376,7 @@ function updateUI() {
     if (domElements.ironEzzPrice) domElements.ironEzzPrice.textContent = `${formatters.egp.format(ironEzzPrice)} ${currencySymbol}`;
     if (domElements.ironEgyptiansPrice) domElements.ironEgyptiansPrice.textContent = `${formatters.egp.format(ironEgyptiansPrice)} ${currencySymbol}`;
     if (domElements.ironGarhyPrice) domElements.ironGarhyPrice.textContent = `${formatters.egp.format(ironGarhyPrice)} ${currencySymbol}`;
+    updateMarketPriceCardVisibility();
 
     // تحديث عيارات الفضة بالعملة المختارة
     const silverGramDisplay = (silverPrice / OUNCE_TO_GRAM) * displayRate;
@@ -1299,13 +1384,10 @@ function updateUI() {
         'silver-999': 0.999, 'silver-925': 0.925, 'silver-900': 0.900, 'silver-800': 0.800
     };
 
-    // تحسين الأداء: تحديث الفضة فقط إذا كان تبويب المعادن نشطاً
-    if (!document.getElementById('metalsGrid').classList.contains('hidden')) {
-        Object.entries(silverElements).forEach(([id, multiplier]) => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = `${formatters.egp.format(silverGramDisplay * multiplier)} ${currencySymbol}`;
-        });
-    }
+    Object.entries(silverElements).forEach(([id, multiplier]) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = `${formatters.egp.format(silverGramDisplay * multiplier)} ${currencySymbol}`;
+    });
 
     // تحديث مؤشرات التغيير
     const updateTrend = (el, current, previous) => {
